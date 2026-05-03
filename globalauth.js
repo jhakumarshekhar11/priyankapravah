@@ -21,15 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             // --- USER IS SIGNED IN ---
 
-            // 🛑 ROUTE GUARD 1: If on login/signup, kick them to the Reading Corner
+            // 🛑 ROUTE GUARD 1
             if (isAuthPage) {
-                window.location.replace("https://priyankapravah.onrender.com/rcorner/"); // Silent, immediate redirect
-                return; // Stop running the rest of the script
+                window.location.replace("/rcorner/index.html"); // Updated path
+                return; 
             }
 
-            // 🛑 ROUTE GUARD 2: If on Admin page but NOT the admin, kick them to Home
+            // 🛑 ROUTE GUARD 2
             if (isAdminPage && user.uid !== ADMIN_UID) {
-                window.location.replace("https://priyankapravah.onrender.com/"); // Silent, immediate redirect
+                window.location.replace("/index.html"); // Updated path
                 return;
             }
 
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 🛑 ROUTE GUARD 3: If an unauthenticated user tries to open Admin, kick them to Home
             if (isAdminPage) {
-                window.location.replace("https://priyankapravah.onrender.com/");
+                window.location.replace("/index.html");
                 return;
             }
 
