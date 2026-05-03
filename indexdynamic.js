@@ -1,5 +1,5 @@
 // index-dynamic.js
-import { db, collection, getDocs, query, orderBy, limit } from './firebase-config.js';
+import { db, collection, getDocs, query, orderBy, limit } from './firebaseconfig.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadHomePageData();
