@@ -528,6 +528,18 @@ footer {
     .author-bio {
         flex: 1.5;
     }
+
+    /* Reading Corner Desktop */
+    .reading-hero .page-title {
+        font-size: 3rem;
+    }
+
+    .publications-grid {
+        /* This magic line makes it responsive without needing extra media queries. 
+           It fits as many 300px wide cards as possible in a row. */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 3rem;
+    }
 }
 
 /* =========================================
