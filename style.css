@@ -633,3 +633,177 @@ footer {
     margin-top: auto; /* Aligns button to the bottom of the card */
     box-sizing: border-box;
 }
+
+/* =========================================
+   Authentication Pages (Login/Signup) Styles
+   ========================================= */
+
+/* Optional: Subtle background for the whole page to make the card pop */
+.auth-body {
+    background: linear-gradient(135deg, var(--off-white) 0%, rgba(155, 101, 159, 0.1) 100%);
+    min-height: 100vh;
+}
+
+.auth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 60px); /* Viewport minus navbar height */
+    padding: 6rem 1rem 3rem 1rem; /* Extra top padding to clear navbar */
+}
+
+.auth-card {
+    background: var(--crisp-white);
+    width: 100%;
+    max-width: 450px;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(43, 14, 68, 0.1);
+    border: 1px solid rgba(155, 101, 159, 0.1);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-title {
+    color: var(--royal-purple);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--soft-amethyst);
+    font-size: 0.9rem;
+}
+
+/* Google Button Styling */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 0.8rem;
+    background-color: var(--crisp-white);
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #444;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.google-btn:hover {
+    background-color: var(--off-white);
+    border-color: var(--soft-amethyst);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Divider with lines */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.auth-divider span {
+    padding: 0 10px;
+}
+
+/* Form Inputs */
+.input-group {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--royal-purple);
+}
+
+.input-group input {
+    padding: 0.8rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: var(--transition);
+    background-color: #fcfcfc;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--berry-magenta);
+    background-color: var(--crisp-white);
+    box-shadow: 0 0 0 3px rgba(194, 26, 92, 0.1);
+}
+
+/* Options (Remember me / Forgot Password) */
+.auth-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    cursor: pointer;
+}
+
+.forgot-password {
+    color: var(--elegant-gold);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.forgot-password:hover {
+    color: var(--berry-magenta);
+    text-decoration: underline;
+}
+
+/* Switch to Signup */
+.auth-switch {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.auth-switch a {
+    color: var(--royal-purple);
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.auth-switch a:hover {
+    color: var(--berry-magenta);
+    text-decoration: underline;
+}
