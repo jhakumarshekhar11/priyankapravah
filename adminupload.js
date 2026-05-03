@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Stop page refresh
+            e.preventDefault(); 
 
             // Gather DOM elements
             const title = document.getElementById('pub-title').value;
@@ -44,24 +44,49 @@ document.addEventListener('DOMContentLoaded', () => {
             const coverFile = coverInput.files[0];
             const docFile = docInput.files[0];
 
-            // Validation check
-            if (!coverFile || !docFile) {
-                alert("Please select both a cover image and a document file.");
+            // Validation checks
+            if (!docFile) {
+                alert("Please select a Document file (PDF or EPUB).");
                 return;
             }
 
-            // UI Feedback: Change button state
+            const isPdf = docFile.name.toLowerCase().endsWith('.pdf');
+            const isEpub = docFile.name.toLowerCase().endsWith('.epub');
+
+            if (isEpub && !coverFile) {
+                alert("For EPUB files, a custom cover image is required.");
+                return;
+            }
+
+            // UI Feedback
             const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = "Uploading... Please wait";
             submitBtn.disabled = true;
             submitBtn.style.opacity = "0.7";
 
             try {
-                // Step A: Upload Cover Image to Cloudinary
-                const coverUrl = await uploadToCloudinary(coverFile, 'image');
+                // Step A: Upload the main Document to Cloudinary
+                // We upload PDFs as 'image' type so Cloudinary can process its pages. EPUBs go as 'raw'.
+                const docResourceType = isPdf ? 'image' : 'raw';
+                const documentUrl = await uploadToCloudinary(docFile, docResourceType);
                 
-                // Step B: Upload Document (PDF/EPUB) to Cloudinary
-                const documentUrl = await uploadToCloudinary(docFile, 'raw');
+                let coverUrl = "";
+
+                // Step B: Determine the Cover Image URL
+                if (coverFile) {
+                    // 1. User provided a custom cover, upload it normally
+                    coverUrl = await uploadToCloudinary(coverFile, 'image');
+                } else if (isPdf) {
+                    // 2. User left cover empty AND it's a PDF. Let's auto-generate!
+                    // Cloudinary trick: take the PDF url, replace .pdf with .jpg, and add a page 1 (pg_1) transformation
+                    
+                    // Example Original: https://res.cloudinary.com/.../upload/v123/book.pdf
+                    // Example Wanted:   https://res.cloudinary.com/.../upload/w_600,pg_1/v123/book.jpg
+                    
+                    coverUrl = documentUrl
+                        .replace('.pdf', '.jpg')
+                        .replace('/upload/', '/upload/w_600,c_fill,pg_1/'); // Sets width to 600px and targets page 1
+                }
 
                 // Step C: Save Metadata & URLs to Firebase Firestore
                 await addDoc(collection(db, 'publications'), {
@@ -71,14 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     description: desc,
                     coverImageUrl: coverUrl,
                     documentUrl: documentUrl,
-                    uploadedAt: serverTimestamp() // Tracks exact upload time
+                    uploadedAt: serverTimestamp() 
                 });
 
                 // Success! Reset UI
                 alert("Publication uploaded successfully!");
                 uploadForm.reset();
-                
-                // Reset drop zone text
                 document.querySelectorAll('.file-drop-zone p').forEach(p => {
                     p.innerHTML = `Drag & drop file here or <span>browse</span>`;
                 });
@@ -90,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Upload failed:", error);
                 alert("An error occurred during upload. Please try again.");
             } finally {
-                // Restore button state
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = "1";
