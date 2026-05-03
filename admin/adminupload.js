@@ -1,5 +1,5 @@
 // admin-upload.js
-import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc } from './firebaseconfig.js';
+import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc } from '../firebaseconfig.js';
 
 const CLOUD_NAME = 'dghjvaonc'; 
 const UPLOAD_PRESET = 'priyankapravah'; 
