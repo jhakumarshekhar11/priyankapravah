@@ -34,7 +34,7 @@ async function loadLibrary() {
             const dateText = data.publishDate || "Unknown Date";
             // Use cover image if it exists, otherwise use a default gradient based on type
             const defaultBg = data.type === 'magazine' ? 'linear-gradient(135deg, var(--elegant-gold), var(--royal-purple))' : 'linear-gradient(135deg, var(--royal-purple), var(--soft-amethyst))';
-            const coverStyle = data.coverImageUrl ? `background: url('${data.coverImageUrl}') center/cover;` : `background: ${defaultBg};`;
+            const coverStyle = data.coverImageUrl ? `background: url('${data.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` : `background: ${defaultBg};`;
 
             // Build HTML
             const cardHtml = `

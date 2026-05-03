@@ -52,34 +52,11 @@
         </div>
     </header>
 
-    <section id="publications" class="publications-section reveal delay-1">
+    <section id="publications" class="publications-section reveal">
         <h2 class="section-heading">My Publications</h2>
         <div class="marquee-container">
-            <div class="marquee-track">
-                <div class="pub-card">
-                    <div class="pub-cover mock-cover-1"></div>
-                    <h3>काव्य तरंग</h3>
-                </div>
-                <div class="pub-card">
-                    <div class="pub-cover mock-cover-2"></div>
-                    <h3>अंतर्मन के स्वर</h3>
-                </div>
-                <div class="pub-card">
-                    <div class="pub-cover mock-cover-3"></div>
-                    <h3>नई दिशाएँ</h3>
-                </div>
-                <div class="pub-card">
-                    <div class="pub-cover mock-cover-4"></div>
-                    <h3>एहसास-ए-ज़िंदगी</h3>
-                </div>
-                 <div class="pub-card">
-                    <div class="pub-cover mock-cover-1"></div>
-                    <h3>काव्य तरंग</h3>
-                </div>
-                <div class="pub-card">
-                    <div class="pub-cover mock-cover-2"></div>
-                    <h3>अंतर्मन के स्वर</h3>
-                </div>
+            <div class="marquee-track" id="dynamic-marquee">
+                <p style="text-align: center; width: 100%; color: #888;">Fetching library...</p>
             </div>
         </div>
     </section>
@@ -93,17 +70,9 @@
                 <a href="about.html" class="cta-button secondary-cta">Read Full Journey</a>
             </div>
 
-            <div class="recent-column">
+            <div class="recent-column" id="latest-release-container">
                 <h2 class="section-heading left-align">Latest Release</h2>
-                <div class="recent-card">
-                    <div class="recent-cover"></div>
-                    <div class="recent-details">
-                        <h3>सुनहरे पल (Golden Moments)</h3>
-                        <p class="pub-date">Published: May 2026</p>
-                        <p class="pub-desc">A beautiful collection of modern Hindi poetry exploring love, loss, and rediscovery.</p>
-                        <a href="reading-corner.html" class="cta-button outline-cta">Read Now</a>
-                    </div>
-                </div>
+                <p style="color: #888;">Fetching latest release...</p>
             </div>
 
         </div>
@@ -115,6 +84,7 @@
 
     <script src="script.js"></script>
     <script type="module" src="globalauth.js"></script>
+    <script type="module" src="indexdynamic.js"></script>
 
 </body>
 </html>
