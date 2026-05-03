@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Priyanka Pravah</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <span class="brand-primary">Priyanka</span><span class="brand-secondary">Pravah</span>
+            </a>
+            
+            <input type="checkbox" id="nav-toggle" class="nav-toggle">
+            <label for="nav-toggle" class="nav-toggle-label">
+                <span></span>
+            </label>
+
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="reading-corner.html">Reading Corner</a></li>
+                <li><a href="admin.html" class="active">Admin</a></li>
+                <li><a href="index.html" class="btn-login" style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="admin-hero">
+        <div class="container">
+            <h1 class="page-title">Creator Dashboard</h1>
+            <p class="page-subtitle">Upload new poetry collections, magazines, and manage your library.</p>
+        </div>
+    </header>
+
+    <section class="admin-section container">
+        <div class="admin-grid">
+            
+            <div class="admin-card">
+                <h2 class="admin-heading">Upload New Publication</h2>
+                
+                <form class="admin-form" action="#" method="POST" enctype="multipart/form-data">
+                    
+                    <div class="input-group">
+                        <label for="pub-title">Publication Title</label>
+                        <input type="text" id="pub-title" placeholder="e.g. काव्य तरंग (April Edition)" required>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="pub-type">Content Type</label>
+                            <select id="pub-type" required>
+                                <option value="" disabled selected>Select type...</option>
+                                <option value="magazine">Magazine</option>
+                                <option value="ebook">E-Book</option>
+                                <option value="poem">Single Poem</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="pub-date">Publication Date</label>
+                            <input type="date" id="pub-date" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="pub-desc">Short Description (Optional)</label>
+                        <textarea id="pub-desc" rows="3" placeholder="Briefly describe this publication..."></textarea>
+                    </div>
+
+                    <div class="file-upload-container">
+                        <div class="input-group">
+                            <label>Cover Image (JPG/PNG)</label>
+                            <div class="file-drop-zone">
+                                <span class="drop-icon">📷</span>
+                                <p>Drag & drop image here or <span>browse</span></p>
+                                <input type="file" id="cover-image" accept="image/*" class="file-input-hidden" required>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Document File (PDF/EPUB)</label>
+                            <div class="file-drop-zone">
+                                <span class="drop-icon">📄</span>
+                                <p>Drag & drop file here or <span>browse</span></p>
+                                <input type="file" id="doc-file" accept=".pdf,.epub" class="file-input-hidden" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="cta-button primary-cta full-width">Publish to Reading Corner</button>
+                </form>
+            </div>
+
+            <div class="admin-card summary-card">
+                <h2 class="admin-heading">Recent Uploads</h2>
+                
+                <div class="manage-list">
+                    <div class="manage-item">
+                        <div class="manage-info">
+                            <div class="manage-dot dot-ebook"></div>
+                            <div>
+                                <h4>सुनहरे पल (Golden Moments)</h4>
+                                <p>E-Book • May 2026</p>
+                            </div>
+                        </div>
+                        <div class="manage-actions">
+                            <button class="action-btn edit-btn">✎</button>
+                            <button class="action-btn delete-btn">🗑</button>
+                        </div>
+                    </div>
+
+                    <div class="manage-item">
+                        <div class="manage-info">
+                            <div class="manage-dot dot-mag"></div>
+                            <div>
+                                <h4>काव्य तरंग</h4>
+                                <p>Magazine • Jan 2026</p>
+                            </div>
+                        </div>
+                        <div class="manage-actions">
+                            <button class="action-btn edit-btn">✎</button>
+                            <button class="action-btn delete-btn">🗑</button>
+                        </div>
+                    </div>
+
+                    <div class="manage-item">
+                        <div class="manage-info">
+                            <div class="manage-dot dot-ebook"></div>
+                            <div>
+                                <h4>अंतर्मन के स्वर</h4>
+                                <p>E-Book • Nov 2025</p>
+                            </div>
+                        </div>
+                        <div class="manage-actions">
+                            <button class="action-btn edit-btn">✎</button>
+                            <button class="action-btn delete-btn">🗑</button>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="#" class="cta-button outline-cta full-width" style="margin-top: 1.5rem;">View All Publications</a>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>
