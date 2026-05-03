@@ -1,9 +1,10 @@
-// globalauth.js
-// ADDED: googleProvider and signInWithPopup to the imports
-import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup } from './firebaseconfig.js';
+import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup } from '../firebaseconfig.js';
 
-// The specific Firebase UID for the Admin
-const ADMIN_UID = "xCROrNRjgrSmVh57NH84diZ0prT2"; 
+// THE UPGRADE: Make this an Array (list) of UIDs instead of just one!
+const ADMIN_UIDS = [
+    "oJIKlGUW0ca9Z21VIaIYn3Rsvre2", // Admin 1
+    "xCROrNRjgrSmVh57NH84diZ0prT2"       // Admin 2 (Replace this with their actual UID)
+]; 
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -11,9 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLogout = document.getElementById('nav-logout');
     const navAdmin = document.getElementById('nav-admin');
 
-    // =========================================
-    // 1. ROUTE GUARDS & AUTH STATE LISTENER
-    // =========================================
     onAuthStateChanged(auth, (user) => {
         const currentPath = window.location.pathname;
         const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
@@ -25,7 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.replace("/rcorner/index.html"); 
                 return; 
             }
-            if (isAdminPage && user.uid !== ADMIN_UID) {
+            
+            // THE UPGRADE: Check if the user's UID is IN our list of admins
+            if (isAdminPage && !ADMIN_UIDS.includes(user.uid)) {
                 window.location.replace("/index.html"); 
                 return;
             }
@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navLogin) navLogin.classList.add('hidden');
             if (navLogout) navLogout.classList.remove('hidden');
 
-            if (user.uid === ADMIN_UID) {
+            // THE UPGRADE: Show Admin link if they are in the list
+            if (ADMIN_UIDS.includes(user.uid)) {
                 if (navAdmin) navAdmin.classList.remove('hidden');
             } else {
                 if (navAdmin) navAdmin.classList.add('hidden');
