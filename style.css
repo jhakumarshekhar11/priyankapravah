@@ -1038,3 +1038,22 @@ footer {
         flex: 1;
     }
 }
+
+/* =========================================
+   Reveal Animations
+   ========================================= */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px); /* Starts slightly lower */
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); /* Smooth snapping effect */
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0); /* Moves to original position */
+}
+
+/* Optional: Add slight delays so things don't appear all at once */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
