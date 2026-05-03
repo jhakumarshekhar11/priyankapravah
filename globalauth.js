@@ -1,5 +1,6 @@
-// global-auth.js
-import { auth, signOut, onAuthStateChanged } from './firebaseconfig.js';
+// globalauth.js
+// ADDED: googleProvider and signInWithPopup to the imports
+import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup } from './firebaseconfig.js';
 
 // The specific Firebase UID for the Admin
 const ADMIN_UID = "oJIKlGUW0ca9Z21VIaIYn3Rsvre2"; 
@@ -10,36 +11,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLogout = document.getElementById('nav-logout');
     const navAdmin = document.getElementById('nav-admin');
 
-    // 1. Listen for Authentication State Changes
+    // =========================================
+    // 1. ROUTE GUARDS & AUTH STATE LISTENER
+    // =========================================
     onAuthStateChanged(auth, (user) => {
-        
-        // Check which page the user is currently on
         const currentPath = window.location.pathname;
-        
-        // THE FIX: Check for the folder names instead of the hidden .html files
         const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
         const isAdminPage = currentPath.includes('/admin');
 
         if (user) {
             // --- USER IS SIGNED IN ---
-
-            // 🛑 ROUTE GUARD 1: Prevent signed-in users from seeing login/signup
             if (isAuthPage) {
                 window.location.replace("/rcorner/index.html"); 
                 return; 
             }
-
-            // 🛑 ROUTE GUARD 2: Prevent non-admins from seeing the admin folder
             if (isAdminPage && user.uid !== ADMIN_UID) {
                 window.location.replace("/index.html"); 
                 return;
             }
 
-            // Update Navbar UI
             if (navLogin) navLogin.classList.add('hidden');
             if (navLogout) navLogout.classList.remove('hidden');
 
-            // Show/Hide Admin Nav Link
             if (user.uid === ADMIN_UID) {
                 if (navAdmin) navAdmin.classList.remove('hidden');
             } else {
@@ -48,26 +41,51 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } else {
             // --- USER IS NOT SIGNED IN ---
-
-            // 🛑 ROUTE GUARD 3: Prevent unauthenticated users from seeing the admin folder
             if (isAdminPage) {
                 window.location.replace("/index.html");
                 return;
             }
 
-            // Update Navbar UI
             if (navLogin) navLogin.classList.remove('hidden');
             if (navLogout) navLogout.classList.add('hidden');
             if (navAdmin) navAdmin.classList.add('hidden');
         }
     });
 
-    // 2. Handle Logout Button Click
+    // =========================================
+    // 2. GOOGLE SIGN-IN LOGIC (The Missing Piece!)
+    // =========================================
+    const googleBtns = document.querySelectorAll('.google-btn');
+    
+    if (googleBtns.length > 0) {
+        googleBtns.forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault(); 
+                try {
+                    // Trigger the Google Popup
+                    await signInWithPopup(auth, googleProvider);
+                    
+                    // Notice we don't redirect here! 
+                    // The onAuthStateChanged listener above will instantly detect 
+                    // the successful login and trigger the Route Guard to redirect them safely.
+                } catch (error) {
+                    console.error("Google Sign-In Error:", error);
+                    // Only alert if the user didn't intentionally close the popup
+                    if (error.code !== 'auth/popup-closed-by-user') {
+                        alert("Sign-in failed. Please try again.");
+                    }
+                }
+            });
+        });
+    }
+
+    // =========================================
+    // 3. LOGOUT LOGIC
+    // =========================================
     if (navLogout) {
         navLogout.addEventListener('click', async (e) => {
             e.preventDefault(); 
             try {
-                // Sign out the user
                 await signOut(auth);
                 console.log("User signed out successfully");
             } catch (error) {
