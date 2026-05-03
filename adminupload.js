@@ -1,14 +1,75 @@
 // admin-upload.js
-import { db, collection, addDoc, serverTimestamp } from './firebaseconfig.js';
+import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy } from './firebaseconfig.js';
 
 // --- CLOUDINARY CONFIGURATION ---
-// Replace these with your actual Cloudinary details
 const CLOUD_NAME = 'dghjvaonc'; 
 const UPLOAD_PRESET = 'priyankapravah'; 
 
+// --- FETCH RECENT UPLOADS LOGIC ---
+async function loadRecentUploads() {
+    const listContainer = document.getElementById('recent-uploads-list');
+    if (!listContainer) return;
+
+    // Show loading state
+    listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">Loading publications...</p>';
+
+    try {
+        // Query Firestore: Get 'publications' collection, order by newest first
+        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        listContainer.innerHTML = ''; // Clear loading text
+
+        // Empty State Check
+        if (querySnapshot.empty) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">No publications found. Publish one!</p>';
+            return;
+        }
+
+        // Loop through the results and build the HTML
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const docId = docSnap.id;
+            
+            // Determine dot color based on type
+            let dotClass = 'dot-ebook'; // default magenta
+            if (data.type === 'magazine') dotClass = 'dot-mag'; // gold
+
+            // Format type text
+            const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Unknown";
+            const dateText = data.publishDate || "Unknown Date";
+
+            const itemHtml = `
+                <div class="manage-item" data-id="${docId}">
+                    <div class="manage-info">
+                        <div class="manage-dot ${dotClass}"></div>
+                        <div>
+                            <h4>${data.title}</h4>
+                            <p>${typeText} • ${dateText}</p>
+                        </div>
+                    </div>
+                    <div class="manage-actions">
+                        <button class="action-btn edit-btn" title="Edit coming soon">✎</button>
+                        <button class="action-btn delete-btn" title="Delete coming soon">🗑</button>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', itemHtml);
+        });
+
+    } catch (error) {
+        console.error("Error fetching publications:", error);
+        listContainer.innerHTML = '<p style="text-align: center; color: #ff4d4d; padding: 2rem 0;">Error loading publications.</p>';
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Make File Inputs Interactive (Show selected file names)
+    // 1. Load publications immediately on page load
+    loadRecentUploads();
+
+    // 2. Make File Inputs Interactive
     const coverInput = document.getElementById('cover-image');
     const docInput = document.getElementById('doc-file');
 
@@ -28,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(coverInput) updateFileName(coverInput);
     if(docInput) updateFileName(docInput);
 
-    // 2. Main Upload Form Logic
+    // 3. Main Upload Form Logic
     const uploadForm = document.querySelector('.admin-form');
     const submitBtn = uploadForm ? uploadForm.querySelector('button[type="submit"]') : null;
 
@@ -36,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault(); 
 
-            // Gather DOM elements
             const title = document.getElementById('pub-title').value;
             const type = document.getElementById('pub-type').value;
             const date = document.getElementById('pub-date').value;
@@ -44,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const coverFile = coverInput.files[0];
             const docFile = docInput.files[0];
 
-            // Validation checks
             if (!docFile) {
                 alert("Please select a Document file (PDF or EPUB).");
                 return;
@@ -58,37 +117,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // UI Feedback
             const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = "Uploading... Please wait";
             submitBtn.disabled = true;
             submitBtn.style.opacity = "0.7";
 
             try {
-                // Step A: Upload the main Document to Cloudinary
-                // We upload PDFs as 'image' type so Cloudinary can process its pages. EPUBs go as 'raw'.
                 const docResourceType = isPdf ? 'image' : 'raw';
                 const documentUrl = await uploadToCloudinary(docFile, docResourceType);
                 
                 let coverUrl = "";
 
-                // Step B: Determine the Cover Image URL
                 if (coverFile) {
-                    // 1. User provided a custom cover, upload it normally
                     coverUrl = await uploadToCloudinary(coverFile, 'image');
                 } else if (isPdf) {
-                    // 2. User left cover empty AND it's a PDF. Let's auto-generate!
-                    // Cloudinary trick: take the PDF url, replace .pdf with .jpg, and add a page 1 (pg_1) transformation
-                    
-                    // Example Original: https://res.cloudinary.com/.../upload/v123/book.pdf
-                    // Example Wanted:   https://res.cloudinary.com/.../upload/w_600,pg_1/v123/book.jpg
-                    
                     coverUrl = documentUrl
                         .replace('.pdf', '.jpg')
-                        .replace('/upload/', '/upload/w_600,c_fill,pg_1/'); // Sets width to 600px and targets page 1
+                        .replace('/upload/', '/upload/w_600,c_fill,pg_1/'); 
                 }
 
-                // Step C: Save Metadata & URLs to Firebase Firestore
                 await addDoc(collection(db, 'publications'), {
                     title: title,
                     type: type,
@@ -99,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     uploadedAt: serverTimestamp() 
                 });
 
-                // Success! Reset UI
                 alert("Publication uploaded successfully!");
                 uploadForm.reset();
                 document.querySelectorAll('.file-drop-zone p').forEach(p => {
@@ -108,6 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.file-drop-zone').forEach(zone => {
                     zone.style.borderColor = '#ccc';
                 });
+
+                // REFRESH THE LIST DYNAMICALLY AFTER UPLOAD
+                loadRecentUploads();
 
             } catch (error) {
                 console.error("Upload failed:", error);
@@ -121,13 +170,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Helper Function: Uploads a single file to Cloudinary via REST API
+// Helper Function: Uploads a single file to Cloudinary
 async function uploadToCloudinary(file, resourceType) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', UPLOAD_PRESET);
     
-    // Cloudinary endpoint
     const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`;
 
     const response = await fetch(url, {
@@ -140,5 +188,5 @@ async function uploadToCloudinary(file, resourceType) {
     }
 
     const data = await response.json();
-    return data.secure_url; // This is the permanent HTTPS link to the file
+    return data.secure_url;
 }
