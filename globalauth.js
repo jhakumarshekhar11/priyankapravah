@@ -15,21 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Check which page the user is currently on
         const currentPath = window.location.pathname;
-        const isAuthPage = currentPath.includes('login.html') || currentPath.includes('signup.html');
-        const isAdminPage = currentPath.includes('admin.html');
+        
+        // THE FIX: Check for the folder names instead of the hidden .html files
+        const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
+        const isAdminPage = currentPath.includes('/admin');
 
         if (user) {
             // --- USER IS SIGNED IN ---
 
-            // 🛑 ROUTE GUARD 1
+            // 🛑 ROUTE GUARD 1: Prevent signed-in users from seeing login/signup
             if (isAuthPage) {
-                window.location.replace("/rcorner/index.html"); // Updated path
+                window.location.replace("/rcorner/index.html"); 
                 return; 
             }
 
-            // 🛑 ROUTE GUARD 2
+            // 🛑 ROUTE GUARD 2: Prevent non-admins from seeing the admin folder
             if (isAdminPage && user.uid !== ADMIN_UID) {
-                window.location.replace("/index.html"); // Updated path
+                window.location.replace("/index.html"); 
                 return;
             }
 
@@ -47,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // --- USER IS NOT SIGNED IN ---
 
-            // 🛑 ROUTE GUARD 3: If an unauthenticated user tries to open Admin, kick them to Home
+            // 🛑 ROUTE GUARD 3: Prevent unauthenticated users from seeing the admin folder
             if (isAdminPage) {
                 window.location.replace("/index.html");
                 return;
@@ -65,14 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
         navLogout.addEventListener('click', async (e) => {
             e.preventDefault(); 
             try {
-                // 1. Sign out the user
+                // Sign out the user
                 await signOut(auth);
                 console.log("User signed out successfully");
-                
-                // 2. We REMOVED the window.location.href from here!
-                // The onAuthStateChanged listener at the top of this file will 
-                // instantly detect the logout and trigger the Route Guard to 
-                // safely kick them back to the home page.
             } catch (error) {
                 console.error("Error signing out:", error);
             }
