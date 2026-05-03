@@ -26,11 +26,11 @@ if(googleBtn) {
 }
 
 // Admin Page Protection (Run this specifically on admin.html)
-if(window.location.pathname.includes('admin.html')) {
+if(window.location.pathname.includes('https://priyankapravah.onrender.com/admin/')) {
     onAuthStateChanged(auth, (user) => {
         if (!user) {
             // Not logged in at all
-            window.location.href = "login.html";
+            window.location.href = "https://priyankapravah.onrender.com/login";
         } else if (user.uid !== ADMIN_UID) {
             // Logged in, but NOT the admin. Kick them out.
             alert("Unauthorized access. You are not the administrator.");
