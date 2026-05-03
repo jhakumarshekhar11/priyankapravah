@@ -6,6 +6,9 @@
     <title>Reading Corner | Priyanka Pravah</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 </head>
 <body>
 
@@ -21,90 +24,53 @@
             </label>
 
             <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="reading-corner.html" class="active">Reading Corner</a></li>
-    
-    <li id="nav-admin" class="hidden"><a href="admin.html">Admin</a></li>
-    
-    <li id="nav-login"><a href="login.html" class="btn-login">Login</a></li>
-    
-    <li id="nav-logout" class="hidden">
-        <a href="#" class="btn-login" style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a>
-    </li>
-</ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="reading-corner.html" class="active">Reading Corner</a></li>
+                <li id="nav-admin" class="hidden"><a href="admin.html">Admin</a></li>
+                <li id="nav-login"><a href="login.html" class="btn-login">Login</a></li>
+                <li id="nav-logout" class="hidden"><a href="#" class="btn-login" style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a></li>
+            </ul>
         </div>
     </nav>
 
-    <header class="reading-hero">
+    <header class="reading-hero reveal">
         <div class="container">
             <h1 class="page-title">The Reading Corner</h1>
             <p class="page-subtitle">Immerse yourself in a curated collection of magazines, e-books, and lyrical journeys.</p>
         </div>
     </header>
 
-    <section class="library-section container reveal delay-3">
-        <div class="publications-grid">
-            
-            <article class="library-card">
-                <div class="library-cover mock-cover-1"></div>
-                <div class="library-info">
-                    <h3 class="library-title">सुनहरे पल (Golden Moments)</h3>
-                    <p class="library-date">Published: May 2026</p>
-                    <p class="library-type">E-Book Collection</p>
-                    <a href="#" class="cta-button outline-cta full-width">Read Online</a>
-                </div>
-            </article>
-
-            <article class="library-card">
-                <div class="library-cover mock-cover-2"></div>
-                <div class="library-info">
-                    <h3 class="library-title">काव्य तरंग (Waves of Poetry)</h3>
-                    <p class="library-date">Published: January 2026</p>
-                    <p class="library-type">Monthly Magazine</p>
-                    <a href="#" class="cta-button outline-cta full-width">Read Online</a>
-                </div>
-            </article>
-
-            <article class="library-card">
-                <div class="library-cover mock-cover-3"></div>
-                <div class="library-info">
-                    <h3 class="library-title">अंतर्मन के स्वर (Inner Voices)</h3>
-                    <p class="library-date">Published: November 2025</p>
-                    <p class="library-type">E-Book</p>
-                    <a href="#" class="cta-button outline-cta full-width">Read Online</a>
-                </div>
-            </article>
-
-            <article class="library-card">
-                <div class="library-cover mock-cover-4"></div>
-                <div class="library-info">
-                    <h3 class="library-title">नई दिशाएँ (New Directions)</h3>
-                    <p class="library-date">Published: August 2025</p>
-                    <p class="library-type">Quarterly Magazine</p>
-                    <a href="#" class="cta-button outline-cta full-width">Read Online</a>
-                </div>
-            </article>
-
-            <article class="library-card">
-                <div class="library-cover mock-cover-1" style="background: linear-gradient(135deg, var(--elegant-gold), var(--berry-magenta));"></div>
-                <div class="library-info">
-                    <h3 class="library-title">एहसास-ए-ज़िंदगी</h3>
-                    <p class="library-date">Published: March 2025</p>
-                    <p class="library-type">E-Book Collection</p>
-                    <a href="#" class="cta-button outline-cta full-width">Read Online</a>
-                </div>
-            </article>
-
+    <section class="library-section container reveal delay-1">
+        <div class="publications-grid" id="library-grid">
+            <p style="text-align: center; color: #888; grid-column: 1 / -1; font-size: 1.2rem;">Fetching your library...</p>
         </div>
     </section>
+
+    <div class="book-modal-overlay" id="book-modal">
+        <button class="close-book-btn" id="close-book">&times;</button>
+        
+        <div class="book-loading-screen" id="book-loading">
+            <div class="spinner"></div>
+            <p>Binding pages... please wait.</p>
+        </div>
+
+        <div class="flipbook-container">
+            <div id="flipbook"></div>
+        </div>
+        
+        <div class="book-controls" id="book-controls" style="display: none;">
+            <button id="prev-page" class="cta-button outline-cta" style="border-color: white; color: white;">&larr; Prev Page</button>
+            <span id="page-counter" style="color: white; margin: 0 1rem;">Page 1</span>
+            <button id="next-page" class="cta-button outline-cta" style="border-color: white; color: white;">Next Page &rarr;</button>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2026 Priyanka Pravah. All Rights Reserved.</p>
     </footer>
 
-    <script src="script.js"></script>
     <script type="module" src="globalauth.js"></script>
-
+    <script type="module" src="readingcorner.js"></script>
 </body>
 </html>

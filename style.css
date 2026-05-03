@@ -1183,3 +1183,97 @@ footer {
 }
 
 .btn-confirm-delete:hover { background: #c53024; }
+
+/* =========================================
+   3D Book Viewer Modal Styles
+   ========================================= */
+.book-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(20, 5, 35, 0.95); /* Deep dark purple */
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.book-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.close-book-btn {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: none;
+    border: none;
+    color: var(--crisp-white);
+    font-size: 3rem;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 10001;
+}
+
+.close-book-btn:hover {
+    color: var(--berry-magenta);
+    transform: scale(1.1);
+}
+
+.flipbook-container {
+    width: 90%;
+    max-width: 1000px;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* StPageFlip specific overrides */
+.stf__wrapper {
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    border-radius: 4px;
+}
+
+.page {
+    background-color: white;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); /* Slight spine shadow */
+    overflow: hidden;
+}
+
+.page canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Loading Spinner for the Book */
+.book-loading-screen {
+    position: absolute;
+    text-align: center;
+    color: var(--crisp-white);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255,255,255,0.2);
+    border-top-color: var(--elegant-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem auto;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.book-controls {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    z-index: 10001;
+}
