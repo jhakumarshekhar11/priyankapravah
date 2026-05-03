@@ -1,0 +1,60 @@
+import { auth, signOut, onAuthStateChanged } from './firebaseconfig.js';
+
+// The specific Firebase UID for the Admin
+const ADMIN_UID = "replace_with_priyankas_actual_uid_here"; 
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const navLogin = document.getElementById('nav-login');
+    const navLogout = document.getElementById('nav-logout');
+    const navAdmin = document.getElementById('nav-admin');
+
+    // 1. Listen for Authentication State Changes
+    onAuthStateChanged(auth, (user) => {
+        
+        // Check which page the user is currently on
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath.includes('login.html') || currentPath.includes('signup.html');
+
+        if (user) {
+            // --- USER IS SIGNED IN ---
+
+            // 🛑 ROUTE GUARD: If they are on login/signup, kick them to the Reading Corner
+            if (isAuthPage) {
+                window.location.href = "reading-corner.html";
+                return; // Stop running the rest of the script for this page
+            }
+
+            // Update Navbar UI
+            if (navLogin) navLogin.classList.add('hidden');
+            if (navLogout) navLogout.classList.remove('hidden');
+
+            // Check if Admin
+            if (user.uid === ADMIN_UID) {
+                if (navAdmin) navAdmin.classList.remove('hidden');
+            } else {
+                if (navAdmin) navAdmin.classList.add('hidden');
+            }
+            
+        } else {
+            // --- USER IS NOT SIGNED IN ---
+            if (navLogin) navLogin.classList.remove('hidden');
+            if (navLogout) navLogout.classList.add('hidden');
+            if (navAdmin) navAdmin.classList.add('hidden');
+        }
+    });
+
+    // 2. Handle Logout Button Click
+    if (navLogout) {
+        navLogout.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            try {
+                await signOut(auth);
+                console.log("User signed out successfully");
+                window.location.href = "index.html"; 
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+    }
+});
