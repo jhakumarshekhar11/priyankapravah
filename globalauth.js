@@ -1,10 +1,30 @@
+// globalauth.js
 import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup } from '../firebaseconfig.js';
 
 // THE UPGRADE: Make this an Array (list) of UIDs instead of just one!
 const ADMIN_UIDS = [
     "oJIKlGUW0ca9Z21VIaIYn3Rsvre2", // Admin 1
-    "xCROrNRjgrSmVh57NH84diZ0prT2"       // Admin 2 (Replace this with their actual UID)
+    "xCROrNRjgrSmVh57NH84diZ0prT2"       // Admin 2
 ]; 
+
+// --- TOAST NOTIFICATION LOGIC ---
+function showToast(message, type = 'default') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -12,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLogout = document.getElementById('nav-logout');
     const navAdmin = document.getElementById('nav-admin');
 
+    // =========================================
+    // 1. ROUTE GUARDS & AUTH STATE LISTENER
+    // =========================================
     onAuthStateChanged(auth, (user) => {
         const currentPath = window.location.pathname;
         const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
@@ -54,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================
-    // 2. GOOGLE SIGN-IN LOGIC (The Missing Piece!)
+    // 2. GOOGLE SIGN-IN LOGIC
     // =========================================
     const googleBtns = document.querySelectorAll('.google-btn');
     
@@ -63,17 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault(); 
                 try {
-                    // Trigger the Google Popup
                     await signInWithPopup(auth, googleProvider);
-                    
-                    // Notice we don't redirect here! 
-                    // The onAuthStateChanged listener above will instantly detect 
-                    // the successful login and trigger the Route Guard to redirect them safely.
                 } catch (error) {
                     console.error("Google Sign-In Error:", error);
-                    // Only alert if the user didn't intentionally close the popup
+                    // Now showToast will work perfectly!
                     if (error.code !== 'auth/popup-closed-by-user') {
-                        alert("Sign-in failed. Please try again.");
+                        showToast("Sign-in failed. Please try again.", "error");
                     }
                 }
             });
