@@ -1,5 +1,5 @@
 // admin-upload.js
-import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc } from '../firebaseconfig.js';
+import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc, limit} from '../firebaseconfig.js';
 
 const CLOUD_NAME = 'dghjvaonc'; 
 const UPLOAD_PRESET = 'priyankapravah'; 
@@ -61,20 +61,25 @@ function showConfirmModal(title, message, onConfirm) {
 // --- FETCH RECENT UPLOADS LOGIC ---
 async function loadRecentUploads() {
     const listContainer = document.getElementById('recent-uploads-list');
+    const showMoreBtn = document.getElementById('show-more-btn');
     if (!listContainer) return;
 
     listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">Loading publications...</p>';
 
     try {
-        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
+        // CHANGED: Fetch up to 10 publications instead of the default
+        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
         listContainer.innerHTML = ''; 
 
         if (querySnapshot.empty) {
             listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">No publications found. Publish one!</p>';
+            if (showMoreBtn) showMoreBtn.style.display = 'none';
             return;
         }
+
+        let index = 0; // Keep track of how many we are rendering
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -82,8 +87,11 @@ async function loadRecentUploads() {
             let dotClass = data.type === 'magazine' ? 'dot-mag' : 'dot-ebook'; 
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Unknown";
 
+            // CHANGED: If it's the 4th item or beyond, add the 'hidden-item' class
+            const hiddenClass = index >= 3 ? 'hidden-item' : '';
+
             const itemHtml = `
-                <div class="manage-item" data-id="${docId}">
+                <div class="manage-item ${hiddenClass}" data-id="${docId}">
                     <div class="manage-info">
                         <div class="manage-dot ${dotClass}"></div>
                         <div>
@@ -98,7 +106,18 @@ async function loadRecentUploads() {
                 </div>
             `;
             listContainer.insertAdjacentHTML('beforeend', itemHtml);
+            index++;
         });
+
+        // Show or hide the "Show More" button depending on total items fetched
+        if (showMoreBtn) {
+            if (index > 3) {
+                showMoreBtn.style.display = 'block';
+            } else {
+                showMoreBtn.style.display = 'none';
+            }
+        }
+
     } catch (error) {
         console.error("Error fetching:", error);
         showToast("Failed to load recent uploads.", "error");
@@ -108,6 +127,20 @@ async function loadRecentUploads() {
 document.addEventListener('DOMContentLoaded', () => {
     
     loadRecentUploads();
+
+    // NEW: Handle "Show More" Button Click
+    const showMoreBtn = document.getElementById('show-more-btn');
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Find all hidden items and reveal them
+            document.querySelectorAll('.hidden-item').forEach(item => {
+                item.classList.remove('hidden-item');
+            });
+            // Hide the button after it's been clicked
+            showMoreBtn.style.display = 'none'; 
+        });
+    }
 
     // UI Elements
     const uploadForm = document.querySelector('.admin-form');
