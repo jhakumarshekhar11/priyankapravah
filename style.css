@@ -1062,3 +1062,124 @@ footer {
 .hidden {
     display: none !important;
 }
+
+/* =========================================
+   Toast Notifications
+   ========================================= */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: var(--crisp-white);
+    border-left: 5px solid var(--berry-magenta);
+    color: var(--royal-purple);
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    font-weight: 500;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Bouncy slide in */
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast.success { border-color: #34A853; } /* Green */
+.toast.error { border-color: #EA4335; }   /* Red */
+
+/* =========================================
+   Progress Button Setup
+   ========================================= */
+.primary-cta.uploading {
+    background: var(--royal-purple); /* Base color behind the progress */
+    color: var(--crisp-white);
+    border-color: transparent;
+    cursor: not-allowed;
+    transition: none; /* Disable standard hover transitions while uploading */
+}
+
+/* =========================================
+   Custom Confirmation Modal
+   ========================================= */
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(43, 14, 68, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.confirm-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-modal {
+    background: var(--crisp-white);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.confirm-modal-overlay.active .confirm-modal {
+    transform: translateY(0);
+}
+
+.confirm-modal h3 {
+    color: var(--royal-purple);
+    margin-bottom: 1rem;
+}
+
+.confirm-modal p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: var(--transition);
+}
+
+.btn-cancel {
+    background: #eee;
+    color: #444;
+}
+
+.btn-cancel:hover { background: #ddd; }
+
+.btn-confirm-delete {
+    background: #EA4335;
+    color: white;
+}
+
+.btn-confirm-delete:hover { background: #c53024; }
