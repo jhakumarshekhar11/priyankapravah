@@ -1,0 +1,417 @@
+/* =========================================
+   CSS Variables (Derived from Logo Palette)
+   ========================================= */
+   :root {
+    --royal-purple: #2B0E44;
+    --berry-magenta: #C21A5C;
+    --elegant-gold: #B78F4B;
+    --soft-amethyst: #9B659F;
+    --crisp-white: #FFFFFF;
+    --off-white: #FAF8FC; /* Soft background for sections */
+    
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Poppins', sans-serif;
+    
+    --transition: all 0.3s ease-in-out;
+}
+
+/* =========================================
+   Base & Resets (Mobile First)
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--royal-purple);
+    background-color: var(--crisp-white);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-heading);
+}
+
+.section-heading {
+    text-align: center;
+    color: var(--royal-purple);
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.section-heading.left-align {
+    text-align: left;
+}
+
+/* Gold underline decorative element */
+.section-heading::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--elegant-gold);
+    margin: 10px auto 0;
+}
+
+.section-heading.left-align::after {
+    margin: 10px 0 0 0;
+}
+
+/* =========================================
+   Navigation Bar
+   ========================================= */
+.navbar {
+    background-color: var(--crisp-white);
+    box-shadow: 0 2px 10px rgba(43, 14, 68, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+}
+
+.brand-logo {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.brand-primary { color: var(--royal-purple); }
+.brand-secondary { color: var(--berry-magenta); font-style: italic; }
+
+.nav-links {
+    display: none; /* Hidden on mobile by default */
+    list-style: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--crisp-white);
+    text-align: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.nav-links li {
+    padding: 1rem 0;
+}
+
+.nav-links a {
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-links a:hover, .nav-links a.active {
+    color: var(--berry-magenta);
+}
+
+/* Hamburger Menu Magic */
+.nav-toggle { display: none; }
+.nav-toggle-label {
+    cursor: pointer;
+    display: block;
+}
+.nav-toggle-label span, .nav-toggle-label span::before, .nav-toggle-label span::after {
+    display: block;
+    background: var(--royal-purple);
+    height: 3px;
+    width: 25px;
+    position: relative;
+    transition: var(--transition);
+}
+.nav-toggle-label span::before, .nav-toggle-label span::after {
+    content: '';
+    position: absolute;
+}
+.nav-toggle-label span::before { bottom: 8px; }
+.nav-toggle-label span::after { top: 8px; }
+
+/* Show menu when checkbox is checked */
+.nav-toggle:checked ~ .nav-links { display: flex; }
+
+/* =========================================
+   Buttons (CTAs)
+   ========================================= */
+.cta-button {
+    display: inline-block;
+    padding: 0.8rem 1.8rem;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.primary-cta {
+    background-color: var(--elegant-gold);
+    color: var(--crisp-white);
+    border: 2px solid var(--elegant-gold);
+}
+
+.primary-cta:hover {
+    background-color: transparent;
+    color: var(--elegant-gold);
+}
+
+.secondary-cta {
+    background-color: var(--berry-magenta);
+    color: var(--crisp-white);
+    margin-top: 1rem;
+}
+
+.secondary-cta:hover {
+    background-color: var(--royal-purple);
+}
+
+.outline-cta {
+    border: 2px solid var(--soft-amethyst);
+    color: var(--royal-purple);
+    margin-top: 1rem;
+}
+
+.outline-cta:hover {
+    background-color: var(--soft-amethyst);
+    color: var(--crisp-white);
+}
+
+/* =========================================
+   Section 1: Hero & Slider
+   ========================================= */
+.hero-section {
+    height: 100vh;
+    margin-top: 60px; /* Offset for navbar */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: url('https://images.unsplash.com/photo-1455390582262-044cdead27d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+    /* CSS Animation for sliding backgrounds can be added here */
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(43, 14, 68, 0.7), rgba(194, 26, 92, 0.5));
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
+    color: var(--crisp-white);
+    padding: 2rem;
+}
+
+.poem-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hindi-poem {
+    font-size: 1.5rem;
+    font-family: var(--font-heading);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.hero-title {
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+}
+
+/* =========================================
+   Section 2: Publications Marquee
+   ========================================= */
+.publications-section {
+    padding: 4rem 0;
+    background-color: var(--off-white);
+    overflow: hidden;
+}
+
+.marquee-container {
+    width: 100%;
+    overflow: hidden;
+    padding: 1rem 0;
+}
+
+.marquee-track {
+    display: flex;
+    gap: 2rem;
+    width: calc(250px * 6); /* Adjust based on card count */
+    animation: scrollMarquee 20s linear infinite;
+}
+
+.marquee-track:hover {
+    animation-play-state: paused; /* Interactive element: pauses on hover */
+}
+
+@keyframes scrollMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-250px * 4)); }
+}
+
+.pub-card {
+    min-width: 200px;
+    text-align: center;
+}
+
+.pub-cover {
+    height: 280px;
+    background-color: var(--soft-amethyst);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    transition: var(--transition);
+}
+
+.pub-card:hover .pub-cover {
+    transform: translateY(-10px);
+}
+
+/* Placeholder gradients for book covers */
+.mock-cover-1 { background: linear-gradient(135deg, var(--royal-purple), var(--soft-amethyst)); }
+.mock-cover-2 { background: linear-gradient(135deg, var(--berry-magenta), var(--elegant-gold)); }
+.mock-cover-3 { background: linear-gradient(135deg, var(--elegant-gold), var(--royal-purple)); }
+.mock-cover-4 { background: linear-gradient(135deg, var(--soft-amethyst), var(--berry-magenta)); }
+
+.pub-card h3 {
+    font-size: 1.1rem;
+    color: var(--royal-purple);
+}
+
+/* =========================================
+   Section 3: About & Recent (Grid)
+   ========================================= */
+.about-recent-section {
+    padding: 4rem 0;
+}
+
+.split-layout {
+    display: flex;
+    flex-direction: column; /* Mobile first: top-bottom stack */
+    gap: 3rem;
+}
+
+.recent-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--off-white);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.recent-cover {
+    height: 250px;
+    background: linear-gradient(45deg, var(--berry-magenta), var(--royal-purple));
+}
+
+.recent-details {
+    padding: 1.5rem;
+}
+
+.pub-date {
+    color: var(--soft-amethyst);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.pub-desc {
+    margin-bottom: 1.5rem;
+}
+
+/* =========================================
+   Footer
+   ========================================= */
+footer {
+    background-color: var(--royal-purple);
+    color: var(--crisp-white);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+}
+
+/* =========================================
+   Media Queries (Desktop/Tablet)
+   ========================================= */
+@media (min-width: 768px) {
+    /* Navbar Desktop */
+    .nav-toggle-label { display: none; }
+    
+    .nav-links {
+        display: flex;
+        flex-direction: row;
+        position: static;
+        background: transparent;
+        width: auto;
+        box-shadow: none;
+        align-items: center;
+    }
+
+    .nav-links li {
+        padding: 0 1.5rem;
+    }
+
+    .btn-login {
+        background-color: var(--royal-purple);
+        color: var(--crisp-white) !important;
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+    }
+
+    .btn-login:hover {
+        background-color: var(--berry-magenta);
+    }
+
+    /* Hero */
+    .hindi-poem {
+        font-size: 2.2rem;
+    }
+
+    /* About/Recent Split Layout */
+    .split-layout {
+        flex-direction: row; /* Side by side on desktop */
+        align-items: stretch;
+    }
+
+    .about-column, .recent-column {
+        flex: 1;
+    }
+
+    .recent-card {
+        flex-direction: row; /* Horizontal card on desktop */
+    }
+
+    .recent-cover {
+        width: 200px;
+        height: auto;
+    }
+}
