@@ -550,16 +550,21 @@ footer {
     transition: var(--transition);
     display: flex;
     flex-direction: column;
+    
+    /* THE FIX: Stop the card from stretching infinitely */
+    max-width: 340px; 
+    width: 100%;
+    justify-self: center; /* Centers the card neatly inside its grid column */
+}
+
+.library-cover {
+    height: 350px; /* Increased from 220px to perfectly fit standard book/magazine ratios */
+    width: 100%;
 }
 
 .library-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(43, 14, 68, 0.15);
-}
-
-.library-cover {
-    height: 220px;
-    width: 100%;
 }
 
 .library-info {
@@ -999,10 +1004,10 @@ footer {
     }
 
     .publications-grid {
-        /* This magic line makes it responsive without needing extra media queries. 
-           It fits as many 300px wide cards as possible in a row. */
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        /* Changing auto-fit to auto-fill stops the grid from forcefully expanding items */
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 3rem;
+        justify-content: center; /* Keeps the cluster of books perfectly centered on the page */
     }
 
     /* Admin Desktop Layout */
