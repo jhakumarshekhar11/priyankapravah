@@ -1,7 +1,7 @@
 import { auth, googleProvider, signInWithPopup, onAuthStateChanged } from './firebaseconfig.js';
 
 // The specific Firebase UID for the Admin (You get this from the Firebase Console after she signs up)
-const ADMIN_UID = "replace_with_priyankas_actual_uid_here"; 
+const ADMIN_UID = "oJIKlGUW0ca9Z21VIaIYn3Rsvre2"; 
 
 // Google Login Handler
 const googleBtn = document.querySelector('.google-btn');

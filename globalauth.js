@@ -2,7 +2,7 @@
 import { auth, signOut, onAuthStateChanged } from './firebaseconfig.js';
 
 // The specific Firebase UID for the Admin
-const ADMIN_UID = "replace_with_priyankas_actual_uid_here"; 
+const ADMIN_UID = "oJIKlGUW0ca9Z21VIaIYn3Rsvre2"; 
 
 document.addEventListener('DOMContentLoaded', () => {
     
