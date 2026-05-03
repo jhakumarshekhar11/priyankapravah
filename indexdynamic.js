@@ -53,7 +53,7 @@ function renderLatestRelease(latestPub) {
                 <h3>${latestPub.title}</h3>
                 <p class="pub-date">Published: ${dateText}</p>
                 <p class="pub-desc">${descText}</p>
-                <a href="reading-corner.html" class="cta-button outline-cta">Read Now</a>
+                <a href="https://priyankapravah.onrender.com/rcorner/" class="cta-button outline-cta">Read Now</a>
             </div>
         </div>
     `;

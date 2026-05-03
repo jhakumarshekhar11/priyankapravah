@@ -14,9 +14,9 @@ if(googleBtn) {
             
             // Scrutiny: Check if the person logging in is the Admin
             if(user.uid === ADMIN_UID) {
-                window.location.href = "admin.html"; // Redirect Admin to dashboard
+                window.location.href = "https://priyankapravah.onrender.com/admin/"; // Redirect Admin to dashboard
             } else {
-                window.location.href = "reading-corner.html"; // Redirect regular users to reading corner
+                window.location.href = "https://priyankapravah.onrender.com/rcorner/"; // Redirect regular users to reading corner
             }
         } catch (error) {
             console.error("Login failed:", error.message);
@@ -34,7 +34,7 @@ if(window.location.pathname.includes('admin.html')) {
         } else if (user.uid !== ADMIN_UID) {
             // Logged in, but NOT the admin. Kick them out.
             alert("Unauthorized access. You are not the administrator.");
-            window.location.href = "reading-corner.html";
+            window.location.href = "https://priyankapravah.onrender.com/";
         } else {
             // It is the Admin! Let them stay.
             console.log("Welcome Admin!");

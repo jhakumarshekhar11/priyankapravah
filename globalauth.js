@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 🛑 ROUTE GUARD 1: If on login/signup, kick them to the Reading Corner
             if (isAuthPage) {
-                window.location.replace("reading-corner.html");
+                window.location.replace("https://priyankapravah.onrender.com/rcorner/"); // Silent, immediate redirect
                 return; // Stop running the rest of the script
             }
 
