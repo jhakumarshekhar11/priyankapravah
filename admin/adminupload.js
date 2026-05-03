@@ -1,4 +1,4 @@
-// admin-upload.js
+// adminupload.js
 import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc, limit} from '../firebaseconfig.js';
 
 const CLOUD_NAME = 'dghjvaonc'; 
@@ -67,7 +67,6 @@ async function loadRecentUploads() {
     listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">Loading publications...</p>';
 
     try {
-        // CHANGED: Fetch up to 10 publications instead of the default
         const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
@@ -79,7 +78,7 @@ async function loadRecentUploads() {
             return;
         }
 
-        let index = 0; // Keep track of how many we are rendering
+        let index = 0; 
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -87,7 +86,6 @@ async function loadRecentUploads() {
             let dotClass = data.type === 'magazine' ? 'dot-mag' : 'dot-ebook'; 
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Unknown";
 
-            // CHANGED: If it's the 4th item or beyond, add the 'hidden-item' class
             const hiddenClass = index >= 3 ? 'hidden-item' : '';
 
             const itemHtml = `
@@ -109,7 +107,6 @@ async function loadRecentUploads() {
             index++;
         });
 
-        // Show or hide the "Show More" button depending on total items fetched
         if (showMoreBtn) {
             if (index > 3) {
                 showMoreBtn.style.display = 'block';
@@ -128,26 +125,25 @@ document.addEventListener('DOMContentLoaded', () => {
     
     loadRecentUploads();
 
-    // NEW: Handle "Show More" Button Click
-    const showMoreBtn = document.getElementById('show-more-btn');
-    if (showMoreBtn) {
-        showMoreBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Find all hidden items and reveal them
-            document.querySelectorAll('.hidden-item').forEach(item => {
-                item.classList.remove('hidden-item');
-            });
-            // Hide the button after it's been clicked
-            showMoreBtn.style.display = 'none'; 
-        });
-    }
-
     // UI Elements
+    const showMoreBtn = document.getElementById('show-more-btn');
     const uploadForm = document.querySelector('.admin-form');
     const submitBtn = uploadForm ? uploadForm.querySelector('button[type="submit"]') : null;
     const formHeading = document.querySelector('.admin-heading');
     const coverInput = document.getElementById('cover-image');
     const docInput = document.getElementById('doc-file');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn'); // NEW: Grab the cancel button
+
+    // Handle "Show More" Button Click
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.hidden-item').forEach(item => {
+                item.classList.remove('hidden-item');
+            });
+            showMoreBtn.style.display = 'none'; 
+        });
+    }
 
     // --- EVENT DELEGATION FOR EDIT & DELETE ---
     document.getElementById('recent-uploads-list').addEventListener('click', async (e) => {
@@ -196,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Update UI to "Edit Mode"
                     formHeading.innerText = "Edit Publication";
                     submitBtn.innerText = "Publish Changes";
+                    if (cancelEditBtn) cancelEditBtn.style.display = 'block'; // NEW: Show Cancel Button
                     
                     document.querySelectorAll('.file-drop-zone p').forEach(p => {
                         p.innerHTML = `(Leave blank to keep existing file) or <span>browse</span> new`;
@@ -210,6 +207,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // --- CANCEL EDIT LOGIC ---
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            uploadForm.reset();
+            editingDocId = null;
+            existingCoverUrl = "";
+            existingDocUrl = "";
+            formHeading.innerText = "Upload New Publication";
+            submitBtn.innerText = "Publish to Reading Corner";
+            cancelEditBtn.style.display = 'none'; // Hide cancel button
+            
+            document.querySelectorAll('.file-drop-zone p').forEach(p => {
+                p.innerHTML = `Drag & drop file here or <span>browse</span>`;
+            });
+            document.querySelectorAll('.file-drop-zone').forEach(zone => {
+                zone.style.borderColor = '#ccc';
+            });
+        });
+    }
 
     // Make File Inputs Interactive
     const updateFileName = (inputElement) => {
@@ -315,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 existingCoverUrl = "";
                 existingDocUrl = "";
                 formHeading.innerText = "Upload New Publication";
+                if (cancelEditBtn) cancelEditBtn.style.display = 'none'; // NEW: Hide Cancel Button
                 
                 document.querySelectorAll('.file-drop-zone p').forEach(p => {
                     p.innerHTML = `Drag & drop file here or <span>browse</span>`;

@@ -40,7 +40,9 @@
 
                 <li id="nav-login"><a href="https://priyankapravah.onrender.com/login/" class="btn-login">Login</a></li>
 
-                <li id="nav-logout"><a href="#" class="btn-login" style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a></li>
+                <li id="nav-logout"><a href="#" class="btn-login"
+                        style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -102,12 +104,19 @@
                             <div class="file-drop-zone">
                                 <span class="drop-icon">📄</span>
                                 <p>Drag & drop file here or <span>browse</span></p>
-                                <input type="file" id="doc-file" accept=".pdf,.epub" class="file-input-hidden" required>
+                                <input type="file" id="doc-file" accept=".pdf,.epub" class="file-input-hidden">
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="cta-button primary-cta full-width">Publish to Reading Corner</button>
+                    <div class="form-actions" style="display: flex; gap: 1rem;">
+                        <button type="button" id="cancel-edit-btn" class="cta-button outline-cta full-width"
+                            style="display: none; background: #f8f9fa; border-color: #ccc; color: #444;">Cancel
+                            Edit</button>
+
+                        <button type="submit" class="cta-button primary-cta full-width">Publish to Reading
+                            Corner</button>
+                    </div>
                 </form>
             </div>
 
@@ -118,7 +127,8 @@
                     <p style="text-align: center; color: #888; padding: 2rem 0;">Loading publications...</p>
                 </div>
 
-                <button id="show-more-btn" class="cta-button outline-cta full-width" style="margin-top: 1.5rem; display: none;">Show More</button>
+                <button id="show-more-btn" class="cta-button outline-cta full-width"
+                    style="margin-top: 1.5rem; display: none;">Show More</button>
 
             </div>
     </section>
