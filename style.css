@@ -207,44 +207,52 @@ h1, h2, h3 {
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: url('https://images.unsplash.com/photo-1455390582262-044cdead27d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
-    /* CSS Animation for sliding backgrounds can be added here */
+    overflow: hidden; /* Keeps the slides contained */
+    /* Note: The static background url() was removed from here */
+}
+
+/* The container holding all 5 images */
+.hero-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Sits at the very back */
+}
+
+/* Individual slides */
+.hero-slider .slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 1.5s ease-in-out, transform 4s ease-in-out; /* Smooth fade and subtle zoom */
+    transform: scale(1.05); /* Starts slightly zoomed in */
+}
+
+/* The active slide */
+.hero-slider .slide.active {
+    opacity: 1;
+    transform: scale(1); /* Zooms out smoothly while fading in */
 }
 
 .hero-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(to bottom, rgba(43, 14, 68, 0.7), rgba(194, 26, 92, 0.5));
+    z-index: 2; /* Sits over the images to make text readable */
 }
 
 .hero-content {
     position: relative;
-    z-index: 10;
+    z-index: 10; /* Sits on top of everything */
     color: var(--crisp-white);
     padding: 2rem;
-}
-
-.poem-container {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
-    padding: 2rem;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.hindi-poem {
-    font-size: 1.5rem;
-    font-family: var(--font-heading);
-    margin-bottom: 1.5rem;
-    line-height: 1.8;
-}
-
-.hero-title {
-    font-size: 1.2rem;
-    font-weight: 300;
-    letter-spacing: 2px;
-    margin-bottom: 2rem;
-    text-transform: uppercase;
 }
 
 /* =========================================
