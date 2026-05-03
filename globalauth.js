@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 🛑 ROUTE GUARD 2: If on Admin page but NOT the admin, kick them to Home
             if (isAdminPage && user.uid !== ADMIN_UID) {
-                window.location.replace("index.html"); // Silent, immediate redirect
+                window.location.replace("https://priyankapravah.onrender.com/"); // Silent, immediate redirect
                 return;
             }
 
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 🛑 ROUTE GUARD 3: If an unauthenticated user tries to open Admin, kick them to Home
             if (isAdminPage) {
-                window.location.replace("index.html");
+                window.location.replace("https://priyankapravah.onrender.com/");
                 return;
             }
 
@@ -65,9 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
         navLogout.addEventListener('click', async (e) => {
             e.preventDefault(); 
             try {
+                // 1. Sign out the user
                 await signOut(auth);
                 console.log("User signed out successfully");
-                window.location.href = "index.html"; 
+                
+                // 2. We REMOVED the window.location.href from here!
+                // The onAuthStateChanged listener at the top of this file will 
+                // instantly detect the logout and trigger the Route Guard to 
+                // safely kick them back to the home page.
             } catch (error) {
                 console.error("Error signing out:", error);
             }
