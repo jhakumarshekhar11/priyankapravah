@@ -1,3 +1,4 @@
+// global-auth.js
 import { auth, signOut, onAuthStateChanged } from './firebaseconfig.js';
 
 // The specific Firebase UID for the Admin
@@ -15,21 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check which page the user is currently on
         const currentPath = window.location.pathname;
         const isAuthPage = currentPath.includes('login.html') || currentPath.includes('signup.html');
+        const isAdminPage = currentPath.includes('admin.html');
 
         if (user) {
             // --- USER IS SIGNED IN ---
 
-            // 🛑 ROUTE GUARD: If they are on login/signup, kick them to the Reading Corner
+            // 🛑 ROUTE GUARD 1: If on login/signup, kick them to the Reading Corner
             if (isAuthPage) {
-                window.location.href = "reading-corner.html";
-                return; // Stop running the rest of the script for this page
+                window.location.replace("reading-corner.html");
+                return; // Stop running the rest of the script
+            }
+
+            // 🛑 ROUTE GUARD 2: If on Admin page but NOT the admin, kick them to Home
+            if (isAdminPage && user.uid !== ADMIN_UID) {
+                window.location.replace("index.html"); // Silent, immediate redirect
+                return;
             }
 
             // Update Navbar UI
             if (navLogin) navLogin.classList.add('hidden');
             if (navLogout) navLogout.classList.remove('hidden');
 
-            // Check if Admin
+            // Show/Hide Admin Nav Link
             if (user.uid === ADMIN_UID) {
                 if (navAdmin) navAdmin.classList.remove('hidden');
             } else {
@@ -38,6 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } else {
             // --- USER IS NOT SIGNED IN ---
+
+            // 🛑 ROUTE GUARD 3: If an unauthenticated user tries to open Admin, kick them to Home
+            if (isAdminPage) {
+                window.location.replace("index.html");
+                return;
+            }
+
+            // Update Navbar UI
             if (navLogin) navLogin.classList.remove('hidden');
             if (navLogout) navLogout.classList.add('hidden');
             if (navAdmin) navAdmin.classList.add('hidden');
