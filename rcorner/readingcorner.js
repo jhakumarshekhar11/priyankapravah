@@ -1,10 +1,13 @@
-// reading-corner.js
-import { db, collection, getDocs, query, orderBy } from './firebaseconfig.js';
+import { db, collection, getDocs, query, orderBy } from '../firebaseconfig.js';
 
 // Setup PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-let currentBook = null; // Holds the StPageFlip instance
+let currentBook = null; 
+
+// --- NEW: SETUP AUDIO FEEDBACK ---
+const flipSound = new Audio('pgflip.mp3'); // Ensure this matches your file path!
+flipSound.volume = 0.4; // Keep it soft and subtle (0.0 to 1.0)
 
 document.addEventListener('DOMContentLoaded', () => {
     loadLibrary();
@@ -15,11 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadLibrary() {
     const grid = document.getElementById('library-grid');
     
+    // THE FIX: Inject 6 shimmering skeleton cards instantly
+    grid.innerHTML = `
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+    `;
+
     try {
         const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
         const querySnapshot = await getDocs(q);
 
-        grid.innerHTML = ''; // Clear loading text
+        grid.innerHTML = ''; // Clear skeletons when data arrives
 
         if (querySnapshot.empty) {
             grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No publications available yet. Check back soon!</p>';
@@ -29,14 +39,13 @@ async function loadLibrary() {
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             
-            // Format text
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Publication";
             const dateText = data.publishDate || "Unknown Date";
-            // Use cover image if it exists, otherwise use a default gradient based on type
             const defaultBg = data.type === 'magazine' ? 'linear-gradient(135deg, var(--elegant-gold), var(--royal-purple))' : 'linear-gradient(135deg, var(--royal-purple), var(--soft-amethyst))';
+            
+            // Using contain for perfect cover rendering
             const coverStyle = data.coverImageUrl ? `background: url('${data.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` : `background: ${defaultBg};`;
 
-            // Build HTML
             const cardHtml = `
                 <article class="library-card reveal delay-1 active">
                     <div class="library-cover" style="${coverStyle}"></div>
@@ -51,7 +60,7 @@ async function loadLibrary() {
             grid.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // Attach event listeners to all new "Read Online" buttons
+        // Attach event listeners to all "Read Online" buttons
         document.querySelectorAll('.read-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const pdfUrl = e.target.getAttribute('data-pdf');
@@ -69,13 +78,19 @@ async function loadLibrary() {
 async function openBookViewer(pdfUrl) {
     const modal = document.getElementById('book-modal');
     const loadingScreen = document.getElementById('book-loading');
-    const flipbookContainer = document.getElementById('flipbook');
     const controls = document.getElementById('book-controls');
+    
+    // Grab the outer wrapper instead of the inner flipbook
+    const flipbookWrapper = document.querySelector('.flipbook-container');
 
-    // Show Modal & Loading State
+    // Show Modal & Prevent background scrolling
     modal.classList.add('active');
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    flipbookContainer.innerHTML = ''; // Clear previous book
+    document.body.style.overflow = 'hidden'; 
+    
+    // Completely DELETE the old book and recreate a brand-new div from scratch
+    flipbookWrapper.innerHTML = '<div id="flipbook"></div>';
+    const flipbookContainer = document.getElementById('flipbook'); // Grab the fresh element
+
     controls.style.display = 'none';
     loadingScreen.style.display = 'block';
 
@@ -85,12 +100,9 @@ async function openBookViewer(pdfUrl) {
         const pdf = await loadingTask.promise;
         const totalPages = pdf.numPages;
 
-        const pagesHTML = [];
-
         // Step B: Loop through PDF and convert each page to an HTML Canvas
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
-            // Scale dictates the crispness. 1.5 to 2.0 is usually good for reading.
             const viewport = page.getViewport({ scale: 1.5 }); 
             
             const canvas = document.createElement('canvas');
@@ -98,10 +110,8 @@ async function openBookViewer(pdfUrl) {
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
-            // Render PDF page into canvas context
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
-            // Wrap canvas in a div required by StPageFlip
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
             pageDiv.appendChild(canvas);
@@ -109,49 +119,67 @@ async function openBookViewer(pdfUrl) {
             flipbookContainer.appendChild(pageDiv);
         }
 
-        // Step C: Initialize StPageFlip on the populated container
+        // Step C: Initialize StPageFlip on the fresh container
         loadingScreen.style.display = 'none';
         controls.style.display = 'flex';
 
         currentBook = new St.PageFlip(flipbookContainer, {
-            width: 400, // Base width (it scales automatically)
-            height: 600, // Base height
+            width: 400, 
+            height: 600, 
             size: "stretch",
             minWidth: 315,
             maxWidth: 1000,
             minHeight: 420,
             maxHeight: 1350,
-            showCover: true, // Makes page 1 act as a single cover
-            maxShadowOpacity: 0.5, // Realistic spine shadow
+            showCover: true, 
+            maxShadowOpacity: 0.5, 
             showPageCorners: true,
-            disableFlipByClick: false // Allows clicking to turn page
+            disableFlipByClick: false 
         });
 
-        currentBook.loadFromHTML(document.querySelectorAll('.page'));
+        // We use querySelectorAll inside the fresh container to ensure we only grab NEW pages
+        currentBook.loadFromHTML(flipbookContainer.querySelectorAll('.page'));
 
-        // Update page counter when pages turn
+        // --- NEW: PLAY AUDIO ON FLIP ---
         currentBook.on('flip', (e) => {
             document.getElementById('page-counter').innerText = `Page ${e.data + 1} of ${totalPages}`;
+            
+            // Reset the audio to 0 seconds so rapid clicks don't mute the sound
+            flipSound.currentTime = 0; 
+            // Play the sound (wrapped in a catch to prevent console errors if browsers block auto-play)
+            flipSound.play().catch(err => console.log("Audio play blocked until user interaction", err));
         });
 
     } catch (error) {
         console.error("Error generating book:", error);
-        loadingScreen.innerHTML = '<p style="color: red;">Failed to load the document. It might be corrupted or blocking access.</p>';
+        loadingScreen.innerHTML = '<p style="color: #ff4d4d;">Failed to load the document. It might be corrupted or blocking access.</p>';
     }
 }
 
 // --- 3. MODAL CONTROLS (Close, Next, Prev) ---
 function setupModalControls() {
     const modal = document.getElementById('book-modal');
+    const flipbookWrapper = document.querySelector('.flipbook-container');
     
     // Close Button
     document.getElementById('close-book').addEventListener('click', () => {
         modal.classList.remove('active');
         document.body.style.overflow = 'auto'; // Restore background scroll
+        
         if (currentBook) {
             currentBook.destroy(); // Free up memory
             currentBook = null;
         }
+
+        // Aggressively wipe the DOM when closed so absolutely nothing lingers
+        flipbookWrapper.innerHTML = '';
+        
+        // Reset the loading screen text and counter for next time
+        document.getElementById('book-loading').innerHTML = `
+            <div class="spinner"></div>
+            <p>Binding pages... please wait.</p>
+        `;
+        document.getElementById('page-counter').innerText = `Page 1`;
     });
 
     // Next Page

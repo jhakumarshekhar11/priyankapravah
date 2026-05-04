@@ -165,14 +165,34 @@ h1, h2, h3 {
 }
 
 .primary-cta {
-    background-color: var(--elegant-gold);
-    color: var(--crisp-white);
-    border: 2px solid var(--elegant-gold);
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+    color: var(--royal-purple);
+    border: 1px solid var(--royal-purple);
+    z-index: 1;
+    transition: color 0.4s ease;
 }
 
+/* The invisible liquid background */
+.primary-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%; /* Hidden to the left */
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--royal-purple), var(--berry-magenta));
+    z-index: -1;
+    transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* The sweep effect on hover */
 .primary-cta:hover {
-    background-color: transparent;
-    color: var(--elegant-gold);
+    color: white;
+}
+.primary-cta:hover::before {
+    left: 0; /* Sweeps in from the left */
 }
 
 .secondary-cta {
@@ -375,17 +395,34 @@ footer {
     .nav-toggle-label { display: none; }
     
     .nav-links {
-        display: flex;
-        flex-direction: row;
-        position: static;
-        background: transparent;
-        width: auto;
-        box-shadow: none;
+        position: fixed; /* Fixed ensures it breaks out of any scrolling issues */
+        top: 70px; /* Adjust this to match the exact height of your navbar */
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95); /* Solid enough to hide content behind it */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        flex-direction: column;
         align-items: center;
+        padding: 2rem 0;
+        
+        /* The Fix: Ensure the menu slides down properly */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, padding 0.4s ease;
+        z-index: 9999; /* Forces it to the very front */
+    }
+
+    /* When the hamburger is clicked */
+    #nav-toggle:checked ~ .nav-links {
+        max-height: 500px; /* Large enough to fit all links */
+        padding: 2rem 0;
+        border-bottom: 1px solid rgba(155, 101, 159, 0.2);
     }
 
     .nav-links li {
-        padding: 0 1.5rem;
+        margin: 1.5rem 0;
+        display: block; /* Ensures links stack correctly */
     }
 
     .btn-login {
@@ -563,16 +600,17 @@ footer {
     max-width: 340px; 
     width: 100%;
     justify-self: center; /* Centers the card neatly inside its grid column */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.library-card:hover {
+    transform: translateY(-8px) scale(1.02); /* Lifts up and slightly magnifies */
+    box-shadow: 0 15px 30px rgba(43, 14, 68, 0.15); /* Shadow gets deeper and softer */
 }
 
 .library-cover {
     height: 350px; /* Increased from 220px to perfectly fit standard book/magazine ratios */
     width: 100%;
-}
-
-.library-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(43, 14, 68, 0.15);
 }
 
 .library-info {
@@ -1289,4 +1327,131 @@ footer {
     display: flex;
     align-items: center;
     z-index: 10001;
+}
+
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.skeleton-card {
+    background: #eee;
+    background-image: linear-gradient(90deg, #eee 0px, #f5f5f5 40px, #eee 80px);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear forwards;
+    border-radius: 12px;
+    height: 350px;
+    width: 100%;
+    max-width: 340px;
+}
+
+/* Horizontal Skeleton for Admin List */
+.skeleton-row {
+    background: #eee;
+    background-image: linear-gradient(90deg, #eee 0px, #f5f5f5 40px, #eee 80px);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear forwards;
+    border-radius: 8px;
+    height: 70px;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* Custom Browser Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f4f0f5; /* Light theme background */
+}
+::-webkit-scrollbar-thumb {
+    background: var(--soft-amethyst); 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--royal-purple); 
+}
+
+/* Subtle Paper Grain Overlay */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; /* Lets clicks pass through to buttons */
+    z-index: 9999; /* Sits on top of everything */
+    opacity: 0.04; /* Keep it VERY subtle */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Create the ambient floating animation */
+@keyframes breathe {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); } /* Gently floats up */
+}
+
+/* Apply it to the cards */
+.library-card {
+    animation: breathe 6s ease-in-out infinite;
+}
+
+/* Desync every second book so they don't move like robots */
+.library-card:nth-child(even) {
+    animation-delay: 3s; 
+}
+
+/* Pause the breathing if the user hovers over it so they can read/click easily */
+.library-card:hover {
+    animation-play-state: paused; 
+}
+
+/* =========================================
+   Tactile Ripple Feedback
+   ========================================= */
+.ripple-parent {
+    position: relative;
+    overflow: hidden; /* Keeps the ripple inside the button/card */
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-anim 0.6s linear forwards;
+    background-color: rgba(194, 26, 92, 0.2); /* Soft Berry Magenta splash */
+    pointer-events: none; /* Prevents the ripple from blocking clicks */
+}
+
+@keyframes ripple-anim {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   Smooth Page Transitions
+   ========================================= */
+.page-transition-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--crisp-white);
+    z-index: 99999; /* Covers absolutely everything */
+    pointer-events: none;
+    opacity: 1;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.5s ease;
+}
+
+/* State when the page has finished loading (Slides up and fades) */
+.page-transition-overlay.loaded {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* State when clicking a link to leave the page (Drops back down) */
+.page-transition-overlay.leaving {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
 }

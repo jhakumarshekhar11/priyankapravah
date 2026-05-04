@@ -1,5 +1,6 @@
-// admin-upload.js
-import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc } from './firebaseconfig.js';
+// adminupload.js
+// ADDED: 'where' to the imports
+import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc, limit, where} from '../firebaseconfig.js';
 
 const CLOUD_NAME = 'dghjvaonc'; 
 const UPLOAD_PRESET = 'priyankapravah'; 
@@ -61,20 +62,29 @@ function showConfirmModal(title, message, onConfirm) {
 // --- FETCH RECENT UPLOADS LOGIC ---
 async function loadRecentUploads() {
     const listContainer = document.getElementById('recent-uploads-list');
+    const showMoreBtn = document.getElementById('show-more-btn');
     if (!listContainer) return;
 
-    listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">Loading publications...</p>';
+    // THE FIX: Inject 3 horizontal shimmering rows
+    listContainer.innerHTML = `
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+    `;
 
     try {
-        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
+        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
-        listContainer.innerHTML = ''; 
+        listContainer.innerHTML = ''; // Clear skeletons when data arrives
 
         if (querySnapshot.empty) {
             listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">No publications found. Publish one!</p>';
+            if (showMoreBtn) showMoreBtn.style.display = 'none';
             return;
         }
+
+        let index = 0; 
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
@@ -82,8 +92,10 @@ async function loadRecentUploads() {
             let dotClass = data.type === 'magazine' ? 'dot-mag' : 'dot-ebook'; 
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Unknown";
 
+            const hiddenClass = index >= 3 ? 'hidden-item' : '';
+
             const itemHtml = `
-                <div class="manage-item" data-id="${docId}">
+                <div class="manage-item ${hiddenClass}" data-id="${docId}">
                     <div class="manage-info">
                         <div class="manage-dot ${dotClass}"></div>
                         <div>
@@ -98,7 +110,17 @@ async function loadRecentUploads() {
                 </div>
             `;
             listContainer.insertAdjacentHTML('beforeend', itemHtml);
+            index++;
         });
+
+        if (showMoreBtn) {
+            if (index > 3) {
+                showMoreBtn.style.display = 'block';
+            } else {
+                showMoreBtn.style.display = 'none';
+            }
+        }
+
     } catch (error) {
         console.error("Error fetching:", error);
         showToast("Failed to load recent uploads.", "error");
@@ -110,11 +132,24 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecentUploads();
 
     // UI Elements
+    const showMoreBtn = document.getElementById('show-more-btn');
     const uploadForm = document.querySelector('.admin-form');
     const submitBtn = uploadForm ? uploadForm.querySelector('button[type="submit"]') : null;
     const formHeading = document.querySelector('.admin-heading');
     const coverInput = document.getElementById('cover-image');
     const docInput = document.getElementById('doc-file');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn'); 
+
+    // Handle "Show More" Button Click
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.hidden-item').forEach(item => {
+                item.classList.remove('hidden-item');
+            });
+            showMoreBtn.style.display = 'none'; 
+        });
+    }
 
     // --- EVENT DELEGATION FOR EDIT & DELETE ---
     document.getElementById('recent-uploads-list').addEventListener('click', async (e) => {
@@ -163,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Update UI to "Edit Mode"
                     formHeading.innerText = "Edit Publication";
                     submitBtn.innerText = "Publish Changes";
+                    if (cancelEditBtn) cancelEditBtn.style.display = 'block'; 
                     
                     document.querySelectorAll('.file-drop-zone p').forEach(p => {
                         p.innerHTML = `(Leave blank to keep existing file) or <span>browse</span> new`;
@@ -177,6 +213,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // --- CANCEL EDIT LOGIC ---
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            uploadForm.reset();
+            editingDocId = null;
+            existingCoverUrl = "";
+            existingDocUrl = "";
+            formHeading.innerText = "Upload New Publication";
+            submitBtn.innerText = "Publish to Reading Corner";
+            cancelEditBtn.style.display = 'none'; 
+            
+            document.querySelectorAll('.file-drop-zone p').forEach(p => {
+                p.innerHTML = `Drag & drop file here or <span>browse</span>`;
+            });
+            document.querySelectorAll('.file-drop-zone').forEach(zone => {
+                zone.style.borderColor = '#ccc';
+            });
+        });
+    }
 
     // Make File Inputs Interactive
     const updateFileName = (inputElement) => {
@@ -200,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault(); 
 
-            const title = document.getElementById('pub-title').value;
+            const title = document.getElementById('pub-title').value.trim();
             const type = document.getElementById('pub-type').value;
             const date = document.getElementById('pub-date').value;
             const desc = document.getElementById('pub-desc').value;
@@ -221,6 +277,47 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
 
             try {
+                // ==========================================
+                // 🛑 NEW DUPLICATE PREVENTION LOGIC
+                // ==========================================
+                submitBtn.innerText = "Checking library...";
+
+                // 1. Check for Duplicate Title
+                const qTitle = query(collection(db, "publications"), where("title", "==", title));
+                const titleSnap = await getDocs(qTitle);
+                let isDuplicateTitle = false;
+                
+                titleSnap.forEach(d => {
+                    if (d.id !== editingDocId) isDuplicateTitle = true; // Ignore if we are editing the same document
+                });
+
+                if (isDuplicateTitle) {
+                    showToast(`A publication titled "${title}" already exists.`, "error");
+                    return; // Abort upload (the 'finally' block handles resetting the button)
+                }
+
+                // 2. Check for Duplicate Filename (Only if a new file is provided)
+                if (docFile) {
+                    const allPubs = await getDocs(collection(db, "publications"));
+                    let isDuplicateFile = false;
+                    
+                    allPubs.forEach(d => {
+                        if (d.id !== editingDocId) {
+                            const data = d.data();
+                            // Check our new originalFileName field OR decode the Cloudinary URL as a fallback
+                            if (data.originalFileName === docFile.name || (data.documentUrl && decodeURIComponent(data.documentUrl).includes(docFile.name))) {
+                                isDuplicateFile = true;
+                            }
+                        }
+                    });
+
+                    if (isDuplicateFile) {
+                        showToast(`The file "${docFile.name}" has already been uploaded.`, "error");
+                        return; // Abort upload
+                    }
+                }
+                // ==========================================
+
                 const updateButtonProgress = (percent) => {
                     submitBtn.innerText = `Uploading... ${Math.round(percent)}%`;
                     submitBtn.style.background = `linear-gradient(to right, var(--elegant-gold) ${percent}%, var(--royal-purple) ${percent}%)`;
@@ -262,6 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     description: desc,
                     coverImageUrl: finalCoverUrl,
                     documentUrl: finalDocUrl,
+                    // Store the raw filename to make future duplicate checks super accurate
+                    ...(docFile ? { originalFileName: docFile.name } : {}), 
                     // Only update timestamp if it's a brand new upload
                     ...(editingDocId ? {} : { uploadedAt: serverTimestamp() })
                 };
@@ -282,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 existingCoverUrl = "";
                 existingDocUrl = "";
                 formHeading.innerText = "Upload New Publication";
+                if (cancelEditBtn) cancelEditBtn.style.display = 'none'; 
                 
                 document.querySelectorAll('.file-drop-zone p').forEach(p => {
                     p.innerHTML = `Drag & drop file here or <span>browse</span>`;
@@ -296,6 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Upload/Update failed:", error);
                 showToast("Operation failed. Please try again.", "error");
             } finally {
+                // Because we used 'return' earlier, this block safely resets the UI 
+                // even if the upload was cancelled due to a duplicate!
                 submitBtn.classList.remove('uploading');
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Publish to Reading Corner"; // Default back to original

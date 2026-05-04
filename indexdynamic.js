@@ -6,31 +6,62 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadHomePageData() {
+    const marqueeContainer = document.getElementById('dynamic-marquee');
+    const latestReleaseContainer = document.getElementById('latest-release-container');
+
+    // 1. INJECT SKELETONS INSTANTLY
+    // The browser paints these gray boxes immediately while waiting for Firebase.
+    if (marqueeContainer) {
+        marqueeContainer.innerHTML = `
+            <div class="pub-card skeleton-card" style="height: 300px; margin: 0 1rem;"></div>
+            <div class="pub-card skeleton-card" style="height: 300px; margin: 0 1rem;"></div>
+            <div class="pub-card skeleton-card" style="height: 300px; margin: 0 1rem;"></div>
+            <div class="pub-card skeleton-card" style="height: 300px; margin: 0 1rem;"></div>
+        `;
+    }
+    
+    if (latestReleaseContainer) {
+        latestReleaseContainer.innerHTML = `
+            <h2 class="section-heading left-align">Latest Release</h2>
+            <div class="skeleton-card" style="max-width: 100%; height: 400px;"></div>
+        `;
+    }
+
     try {
+        // 2. FETCH DATA
         // Fetch only the 10 most recent publications
         const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
 
+        // 3. HANDLE EMPTY STATE
+        // Overwrite the skeletons with "Coming soon" text if the database is empty
         if (querySnapshot.empty) {
-            document.getElementById('dynamic-marquee').innerHTML = '<p style="text-align:center; width:100%;">No publications available yet.</p>';
-            document.getElementById('latest-release-container').innerHTML = `
-                <h2 class="section-heading left-align">Latest Release</h2>
-                <p>Coming soon!</p>
-            `;
+            if (marqueeContainer) {
+                marqueeContainer.innerHTML = '<p style="text-align:center; width:100%;">No publications available yet.</p>';
+            }
+            if (latestReleaseContainer) {
+                latestReleaseContainer.innerHTML = `
+                    <h2 class="section-heading left-align">Latest Release</h2>
+                    <p>Coming soon!</p>
+                `;
+            }
             return;
         }
 
+        // 4. RENDER REAL DATA
         const publications = [];
         querySnapshot.forEach(doc => publications.push(doc.data()));
 
         // The very first item in the array is the newest one!
+        // These functions will automatically overwrite the skeleton HTML with the real books.
         renderLatestRelease(publications[0]);
-        
-        // Pass all fetched items to the marquee
         renderMarquee(publications);
 
     } catch (error) {
         console.error("Error loading home page data:", error);
+        if (marqueeContainer) {
+            marqueeContainer.innerHTML = '<p style="text-align:center; width:100%; color: red;">Failed to load library.</p>';
+        }
     }
 }
 
@@ -53,7 +84,7 @@ function renderLatestRelease(latestPub) {
                 <h3>${latestPub.title}</h3>
                 <p class="pub-date">Published: ${dateText}</p>
                 <p class="pub-desc">${descText}</p>
-                <a href="reading-corner.html" class="cta-button outline-cta">Read Now</a>
+                <a href="https://priyankapravah.onrender.com/rcorner/" class="cta-button outline-cta">Read Now</a>
             </div>
         </div>
     `;
