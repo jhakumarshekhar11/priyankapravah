@@ -395,7 +395,7 @@ footer {
     .nav-toggle-label { display: none; }
     
     .nav-links {
-        /* Resetting back to a normal horizontal row for desktop */
+        display: flex; /* <--- ADD THIS LINE! */
         position: static; 
         width: auto;
         background: transparent;
@@ -403,7 +403,7 @@ footer {
         -webkit-backdrop-filter: none;
         flex-direction: row;
         padding: 0;
-        max-height: none; /* Let them show! */
+        max-height: none; 
         overflow: visible;
     }
 
