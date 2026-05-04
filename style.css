@@ -1292,9 +1292,10 @@ footer {
 }
 
 .page {
-    background-color: white;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.05); /* Slight spine shadow */
+    background-color: #fcfcfc; /* Solid white/off-white is CRUCIAL for the 3D backward flip */
     overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05); /* Adds a realistic paper shadow */
+    border: 1px solid rgba(0,0,0,0.05); /* Subtle page edge */
 }
 
 .page canvas {
@@ -1327,6 +1328,27 @@ footer {
     display: flex;
     align-items: center;
     z-index: 10001;
+}
+
+/* =========================================
+   Lazy Loading Page States
+   ========================================= */
+.lazy-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #bbb;
+    font-size: 0.9rem;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Ensure the canvas sits on top of the loading text */
+.page canvas {
+    position: relative;
+    z-index: 1;
 }
 
 /* Skeleton Shimmer Animation */
