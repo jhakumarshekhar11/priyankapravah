@@ -395,34 +395,21 @@ footer {
     .nav-toggle-label { display: none; }
     
     .nav-links {
-        position: fixed; /* Fixed ensures it breaks out of any scrolling issues */
-        top: 70px; /* Adjust this to match the exact height of your navbar */
-        left: 0;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.95); /* Solid enough to hide content behind it */
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        flex-direction: column;
-        align-items: center;
-        padding: 2rem 0;
-        
-        /* The Fix: Ensure the menu slides down properly */
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease-in-out, padding 0.4s ease;
-        z-index: 9999; /* Forces it to the very front */
-    }
-
-    /* When the hamburger is clicked */
-    #nav-toggle:checked ~ .nav-links {
-        max-height: 500px; /* Large enough to fit all links */
-        padding: 2rem 0;
-        border-bottom: 1px solid rgba(155, 101, 159, 0.2);
+        /* Resetting back to a normal horizontal row for desktop */
+        position: static; 
+        width: auto;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        flex-direction: row;
+        padding: 0;
+        max-height: none; /* Let them show! */
+        overflow: visible;
     }
 
     .nav-links li {
-        margin: 1.5rem 0;
-        display: block; /* Ensures links stack correctly */
+        margin: 0 0 0 2rem; /* Side-by-side spacing */
+        display: inline-block;
     }
 
     .btn-login {
@@ -458,6 +445,38 @@ footer {
     .recent-cover {
         width: 200px;
         height: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    /* Navbar Mobile (The Dropdown) */
+    .nav-links {
+        position: fixed; 
+        top: 70px; 
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95); 
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        flex-direction: column;
+        align-items: center;
+        
+        max-height: 0;
+        overflow: hidden;
+        padding: 0; /* Reset padding when closed */
+        transition: max-height 0.4s ease-in-out, padding 0.4s ease;
+        z-index: 9999; 
+    }
+
+    #nav-toggle:checked ~ .nav-links {
+        max-height: 500px; 
+        padding: 2rem 0;
+        border-bottom: 1px solid rgba(155, 101, 159, 0.2);
+    }
+
+    .nav-links li {
+        margin: 1.5rem 0;
+        display: block; 
     }
 }
 
