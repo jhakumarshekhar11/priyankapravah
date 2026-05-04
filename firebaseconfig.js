@@ -6,8 +6,7 @@ import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orde
 // TODO: Replace with your app's Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyARFNSg6Mh_DyG_eVbkVDam59nBJG40jx4",
-  authDomain: "priyankapravah.firebaseapp.com",
-  databaseURL: "https://priyankapravah-default-rtdb.firebaseio.com",
+  authDomain: "auth.priyankapravah.live",
   projectId: "priyankapravah",
   storageBucket: "priyankapravah.firebasestorage.app",
   messagingSenderId: "895455395916",
