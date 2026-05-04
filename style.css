@@ -469,13 +469,13 @@ footer {
     }
 
     #nav-toggle:checked ~ .nav-links {
-        max-height: 500px; 
-        padding: 2rem 0;
+        max-height: 650px; /* INCREASED: Gives the menu plenty of room for the extra Admin link */
+        padding: 1.5rem 0; /* Slightly reduced the top/bottom padding of the whole menu */
         border-bottom: 1px solid rgba(155, 101, 159, 0.2);
     }
 
     .nav-links li {
-        margin: 1.5rem 0;
+        margin: 0.8rem 0; /* DECREASED: Tightens the gap between individual links */
         display: block; 
     }
 }
