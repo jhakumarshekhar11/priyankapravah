@@ -1,4 +1,3 @@
-// globalauth.js
 import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup, signInWithCredential } from '../firebaseconfig.js';
 // NOTE: We need GoogleAuthProvider specifically to format the credential
 import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
