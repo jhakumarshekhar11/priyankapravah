@@ -18,11 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadLibrary() {
     const grid = document.getElementById('library-grid');
     
+    // THE FIX: Inject 6 shimmering skeleton cards instantly
+    grid.innerHTML = `
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+    `;
+
     try {
         const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
         const querySnapshot = await getDocs(q);
 
-        grid.innerHTML = ''; 
+        grid.innerHTML = ''; // Clear skeletons when data arrives
 
         if (querySnapshot.empty) {
             grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No publications available yet. Check back soon!</p>';
