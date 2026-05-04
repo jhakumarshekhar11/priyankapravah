@@ -1,10 +1,13 @@
-// readingcorner.js
 import { db, collection, getDocs, query, orderBy } from '../firebaseconfig.js';
 
 // Setup PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 let currentBook = null; 
+
+// --- NEW: SETUP AUDIO FEEDBACK ---
+const flipSound = new Audio('pgflip.mp3'); // Ensure this matches your file path!
+flipSound.volume = 0.4; // Keep it soft and subtle (0.0 to 1.0)
 
 document.addEventListener('DOMContentLoaded', () => {
     loadLibrary();
@@ -70,14 +73,14 @@ async function openBookViewer(pdfUrl) {
     const loadingScreen = document.getElementById('book-loading');
     const controls = document.getElementById('book-controls');
     
-    // THE FIX: Grab the outer wrapper instead of the inner flipbook
+    // Grab the outer wrapper instead of the inner flipbook
     const flipbookWrapper = document.querySelector('.flipbook-container');
 
     // Show Modal & Prevent background scrolling
     modal.classList.add('active');
     document.body.style.overflow = 'hidden'; 
     
-    // THE FIX: Completely DELETE the old book and recreate a brand-new div from scratch
+    // Completely DELETE the old book and recreate a brand-new div from scratch
     flipbookWrapper.innerHTML = '<div id="flipbook"></div>';
     const flipbookContainer = document.getElementById('flipbook'); // Grab the fresh element
 
@@ -130,8 +133,14 @@ async function openBookViewer(pdfUrl) {
         // We use querySelectorAll inside the fresh container to ensure we only grab NEW pages
         currentBook.loadFromHTML(flipbookContainer.querySelectorAll('.page'));
 
+        // --- NEW: PLAY AUDIO ON FLIP ---
         currentBook.on('flip', (e) => {
             document.getElementById('page-counter').innerText = `Page ${e.data + 1} of ${totalPages}`;
+            
+            // Reset the audio to 0 seconds so rapid clicks don't mute the sound
+            flipSound.currentTime = 0; 
+            // Play the sound (wrapped in a catch to prevent console errors if browsers block auto-play)
+            flipSound.play().catch(err => console.log("Audio play blocked until user interaction", err));
         });
 
     } catch (error) {
@@ -155,7 +164,7 @@ function setupModalControls() {
             currentBook = null;
         }
 
-        // THE FIX: Aggressively wipe the DOM when closed so absolutely nothing lingers
+        // Aggressively wipe the DOM when closed so absolutely nothing lingers
         flipbookWrapper.innerHTML = '';
         
         // Reset the loading screen text and counter for next time
