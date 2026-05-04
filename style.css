@@ -1427,3 +1427,30 @@ body::before {
         opacity: 0;
     }
 }
+
+/* =========================================
+   Smooth Page Transitions
+   ========================================= */
+.page-transition-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--crisp-white);
+    z-index: 99999; /* Covers absolutely everything */
+    pointer-events: none;
+    opacity: 1;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.5s ease;
+}
+
+/* State when the page has finished loading (Slides up and fades) */
+.page-transition-overlay.loaded {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* State when clicking a link to leave the page (Drops back down) */
+.page-transition-overlay.leaving {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}

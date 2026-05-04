@@ -78,5 +78,49 @@ document.addEventListener("DOMContentLoaded", () => {
         el.addEventListener('mousedown', createRipple); // Desktop
         el.addEventListener('touchstart', createRipple, { passive: true }); // Mobile
     });
+
+    // --- SMOOTH PAGE TRANSITIONS ---
+    
+    // 1. Entrance Animation (When page loads)
+    window.addEventListener('load', () => {
+        const overlay = document.querySelector('.page-transition-overlay');
+        if (overlay) {
+            // Slight delay ensures the CSS registers the initial state before animating
+            setTimeout(() => {
+                overlay.classList.add('loaded');
+            }, 50);
+        }
+    });
+
+    // 2. Exit Animation (When clicking a link)
+    document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetUrl = link.getAttribute('href');
+            const targetWindow = link.getAttribute('target');
+
+            // Ignore links that don't go to a new page (like #anchors or target="_blank")
+            if (!targetUrl || targetUrl.startsWith('#') || targetWindow === '_blank' || targetUrl.includes('javascript:')) {
+                return;
+            }
+
+            // Stop the browser from instantly jumping
+            e.preventDefault();
+            
+            const overlay = document.querySelector('.page-transition-overlay');
+            if (overlay) {
+                // Pull the curtain down
+                overlay.classList.remove('loaded');
+                overlay.classList.add('leaving');
+                
+                // Wait for the swipe animation to finish (400ms), THEN change the page
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 400); 
+            } else {
+                // Fallback just in case the overlay is missing
+                window.location.href = targetUrl;
+            }
+        });
+    });
     
 });
