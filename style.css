@@ -394,17 +394,34 @@ footer {
     .nav-toggle-label { display: none; }
     
     .nav-links {
-        display: flex;
-        flex-direction: row;
-        position: static;
-        background: transparent;
-        width: auto;
-        box-shadow: none;
+        position: fixed; /* Fixed ensures it breaks out of any scrolling issues */
+        top: 70px; /* Adjust this to match the exact height of your navbar */
+        left: 0;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95); /* Solid enough to hide content behind it */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        flex-direction: column;
         align-items: center;
+        padding: 2rem 0;
+        
+        /* The Fix: Ensure the menu slides down properly */
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, padding 0.4s ease;
+        z-index: 9999; /* Forces it to the very front */
+    }
+
+    /* When the hamburger is clicked */
+    #nav-toggle:checked ~ .nav-links {
+        max-height: 500px; /* Large enough to fit all links */
+        padding: 2rem 0;
+        border-bottom: 1px solid rgba(155, 101, 159, 0.2);
     }
 
     .nav-links li {
-        padding: 0 1.5rem;
+        margin: 1.5rem 0;
+        display: block; /* Ensures links stack correctly */
     }
 
     .btn-login {
@@ -1364,4 +1381,49 @@ body::before {
     z-index: 9999; /* Sits on top of everything */
     opacity: 0.04; /* Keep it VERY subtle */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Create the ambient floating animation */
+@keyframes breathe {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); } /* Gently floats up */
+}
+
+/* Apply it to the cards */
+.library-card {
+    animation: breathe 6s ease-in-out infinite;
+}
+
+/* Desync every second book so they don't move like robots */
+.library-card:nth-child(even) {
+    animation-delay: 3s; 
+}
+
+/* Pause the breathing if the user hovers over it so they can read/click easily */
+.library-card:hover {
+    animation-play-state: paused; 
+}
+
+/* =========================================
+   Tactile Ripple Feedback
+   ========================================= */
+.ripple-parent {
+    position: relative;
+    overflow: hidden; /* Keeps the ripple inside the button/card */
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-anim 0.6s linear forwards;
+    background-color: rgba(194, 26, 92, 0.2); /* Soft Berry Magenta splash */
+    pointer-events: none; /* Prevents the ripple from blocking clicks */
+}
+
+@keyframes ripple-anim {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
 }
