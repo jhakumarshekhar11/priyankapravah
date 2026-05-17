@@ -63,8 +63,9 @@ async function loadLibrary() {
                         <p class="library-type">${typeText}</p>
                         
                         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="cta-button outline-cta full-width read-btn" style="flex: 1;" data-pdf="${data.documentUrl}">Read Online</button>
-                            <button class="cta-button outline-cta share-btn" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
+                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-pdf="${data.documentUrl}">Read</button>
+                            <button class="cta-button outline-cta comment-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Comments">💬</button>
+                            <button class="cta-button outline-cta share-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
                         </div>
                     </div>
                 </article>
@@ -286,4 +287,108 @@ function setupModalControls() {
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentBook) currentBook.flipPrev();
     });
+// --- COMMENTS SYSTEM ---
+let currentCommentBookId = null;
+let commentsUnsubscribe = null; // Used to stop listening to old books when you close the modal
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // Attach listener to open comments (Event Delegation)
+    document.getElementById('library-grid').addEventListener('click', (e) => {
+        const commentBtn = e.target.closest('.comment-btn');
+        if (commentBtn) {
+            currentCommentBookId = commentBtn.getAttribute('data-id');
+            openCommentsModal(currentCommentBookId);
+        }
+    });
+
+    // Close Comments Modal
+    document.getElementById('close-comments').addEventListener('click', () => {
+        document.getElementById('comments-modal').classList.remove('active');
+        if (commentsUnsubscribe) {
+            commentsUnsubscribe(); // Stop downloading comments to save bandwidth
+        }
+    });
+
+    // Submit Comment
+    document.getElementById('submit-comment').addEventListener('click', async () => {
+        const textInput = document.getElementById('comment-text');
+        const text = textInput.value.trim();
+        
+        if (!text || !currentCommentBookId) return;
+
+        // Check if user is logged in
+        // IMPORTANT: Ensure you imported 'auth' from firebaseconfig.js at the top of this file!
+        let authorName = "Unknown";
+        if (auth.currentUser) {
+            authorName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+        }
+
+        const submitBtn = document.getElementById('submit-comment');
+        submitBtn.innerText = '...';
+        submitBtn.disabled = true;
+
+        try {
+            // Save inside a subcollection: publications -> [bookId] -> comments
+            await addDoc(collection(db, `publications/${currentCommentBookId}/comments`), {
+                text: text,
+                author: authorName,
+                timestamp: serverTimestamp()
+            });
+            textInput.value = ''; // Clear the box
+        } catch (error) {
+            console.error("Error posting comment:", error);
+            alert("Failed to post comment. Check your connection.");
+        } finally {
+            submitBtn.innerText = 'Post';
+            submitBtn.disabled = false;
+        }
+    });
+});
+
+// Fetch and display comments in real-time
+function openCommentsModal(bookId) {
+    const modal = document.getElementById('comments-modal');
+    const list = document.getElementById('comments-list');
+    
+    modal.classList.add('active');
+    list.innerHTML = '<p style="text-align:center; color:#888;">Loading people\'s thoughts...</p>';
+
+    // Reference the specific book's comment subcollection
+    const commentsRef = collection(db, `publications/${bookId}/comments`);
+    const q = query(commentsRef, orderBy('timestamp', 'asc')); // Oldest at the top, newest at the bottom
+
+    // onSnapshot listens for real-time changes instantly!
+    commentsUnsubscribe = onSnapshot(q, (snapshot) => {
+        list.innerHTML = ''; // Clear loading text
+        
+        if (snapshot.empty) {
+            list.innerHTML = '<p style="text-align:center; color:#888; margin-top:2rem;">Be the first to share your experience!</p>';
+            return;
+        }
+
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            
+            // Format the timestamp nicely
+            let timeString = "Just now";
+            if (data.timestamp) {
+                const date = data.timestamp.toDate();
+                timeString = date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+
+            const commentHtml = `
+                <div class="comment-item">
+                    <div class="comment-author">${data.author}</div>
+                    <span class="comment-date">${timeString}</span>
+                    <div class="comment-body">${data.text}</div>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', commentHtml);
+        });
+
+        // Auto-scroll to the very bottom to see the newest comment
+        list.scrollTop = list.scrollHeight;
+    });
+}
 }

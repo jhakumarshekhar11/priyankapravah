@@ -170,6 +170,24 @@
         requestAnimationFrame(raf);
     </script>
 <script type="module" src="/footer.js"></script>
+
+    <div class="comments-modal-overlay" id="comments-modal">
+        <div class="comments-modal-content">
+            <div class="comments-header">
+                <h3>Reader Experiences</h3>
+                <button id="close-comments" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="comments-list" id="comments-list">
+                </div>
+            
+            <div class="comments-input-area">
+                <textarea id="comment-text" placeholder="Share your thoughts..."></textarea>
+                <button id="submit-comment" class="cta-button primary-cta ripple-parent">Post</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
