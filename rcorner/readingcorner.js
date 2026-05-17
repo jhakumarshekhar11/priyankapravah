@@ -66,7 +66,7 @@ async function loadLibrary() {
                         <p class="library-type">${typeText}</p>
                         
                         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-pdf="${data.documentUrl}">Read</button>
+                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-pdf="${data.documentUrl}" data-id="${docId}">Read</button>
                             <button class="cta-button outline-cta comment-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Comments">💬</button>
                             <button class="cta-button outline-cta share-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
                         </div>
@@ -79,7 +79,8 @@ async function loadLibrary() {
         document.querySelectorAll('.read-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const pdfUrl = e.target.getAttribute('data-pdf');
-                openBookViewer(pdfUrl);
+                const bookId = e.target.getAttribute('data-id'); // Grab the ID
+                openBookViewer(pdfUrl, bookId); // Pass it in!
             });
         });
 
@@ -109,7 +110,7 @@ async function loadLibrary() {
 
         if (sharedPdfUrl) {
             setTimeout(() => {
-                openBookViewer(sharedPdfUrl);
+                openBookViewer(sharedPdfUrl, sharedBookId);
             }, 500); 
         }
 
@@ -270,6 +271,20 @@ function setupModalControls() {
 
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentBook) currentBook.flipPrev();
+    });
+    // --- NEW: IN-BOOK COMMENT LISTENER ---
+    document.getElementById('in-book-comment-btn').addEventListener('click', () => {
+        // We get the bookId from the URL or the button they clicked to open the book!
+        const urlParams = new URLSearchParams(window.location.search);
+        let activeBookId = urlParams.get('book');
+        
+        // If they clicked the comment button, set the global variable and open it
+        if (activeBookId) {
+            currentCommentBookId = activeBookId;
+            openCommentsModal(activeBookId);
+        } else {
+            console.error("No book ID found to comment on!");
+        }
     });
 } // <-- THIS CLOSING BRACKET WAS THE CULPRIT BEFORE! It is now properly closing the book controls.
 

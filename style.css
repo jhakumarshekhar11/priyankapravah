@@ -1776,3 +1776,16 @@ body::before {
         transform: scale(1);
     }
 }
+
+/* --- MOBILE KEYBOARD FIX --- */
+@media (max-width: 767px) {
+    .comments-modal-overlay {
+        align-items: flex-start; /* Snaps it to the top */
+    }
+    .comments-modal-content {
+        /* dvh automatically resizes when the keyboard slides up! */
+        height: 100dvh; 
+        border-radius: 0; /* Makes it feel like a native app screen */
+        max-width: 100%;
+    }
+}
