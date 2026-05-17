@@ -79,9 +79,12 @@ async function loadLibrary() {
 
         document.querySelectorAll('.read-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const pdfUrl = e.target.getAttribute('data-pdf');
-                const bookId = e.target.getAttribute('data-id'); // Grab the ID
-                openBookViewer(pdfUrl, bookId); // Pass it in!
+                // currentTarget guarantees we grab the button, not the ripple effect
+                const targetBtn = e.currentTarget; 
+                const pdfUrl = targetBtn.getAttribute('data-pdf');
+                const bookId = targetBtn.getAttribute('data-id'); 
+                
+                openBookViewer(pdfUrl, bookId); 
             });
         });
 
@@ -122,7 +125,7 @@ async function loadLibrary() {
 }
 
 // --- 2. THE 3D BOOK VIEWER LOGIC (WITH LAZY LOADING) ---
-async function openBookViewer(pdfUrl) {
+async function openBookViewer(pdfUrl, bookId) {
     currentlyOpenBookId = bookId;
     const modal = document.getElementById('book-modal');
     const loadingScreen = document.getElementById('book-loading');
