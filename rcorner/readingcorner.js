@@ -6,6 +6,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 let currentBook = null; 
 let currentCommentBookId = null; // Moved to global scope
 let commentsUnsubscribe = null;  // Moved to global scope
+let currentlyOpenBookId = null;
 
 // --- SETUP AUDIO FEEDBACK ---
 const flipSound = new Audio('pgflip.mp3'); 
@@ -122,6 +123,7 @@ async function loadLibrary() {
 
 // --- 2. THE 3D BOOK VIEWER LOGIC (WITH LAZY LOADING) ---
 async function openBookViewer(pdfUrl) {
+    currentlyOpenBookId = bookId;
     const modal = document.getElementById('book-modal');
     const loadingScreen = document.getElementById('book-loading');
     const controls = document.getElementById('book-controls');
@@ -272,16 +274,13 @@ function setupModalControls() {
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentBook) currentBook.flipPrev();
     });
-    // --- NEW: IN-BOOK COMMENT LISTENER ---
+    // --- UPDATED: IN-BOOK COMMENT LISTENER ---
     document.getElementById('in-book-comment-btn').addEventListener('click', () => {
-        // We get the bookId from the URL or the button they clicked to open the book!
-        const urlParams = new URLSearchParams(window.location.search);
-        let activeBookId = urlParams.get('book');
         
-        // If they clicked the comment button, set the global variable and open it
-        if (activeBookId) {
-            currentCommentBookId = activeBookId;
-            openCommentsModal(activeBookId);
+        // Grab the ID from our memory instead of the URL
+        if (currentlyOpenBookId) {
+            currentCommentBookId = currentlyOpenBookId;
+            openCommentsModal(currentlyOpenBookId);
         } else {
             console.error("No book ID found to comment on!");
         }
