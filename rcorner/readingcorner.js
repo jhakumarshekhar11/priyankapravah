@@ -1,18 +1,21 @@
-// readingcorner.js
-import { db, collection, getDocs, query, orderBy } from '../firebaseconfig.js';
+import { db, auth, collection, getDocs, query, orderBy, addDoc, serverTimestamp, onSnapshot } from '../firebaseconfig.js';
 
 // Setup PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 let currentBook = null; 
+let currentCommentBookId = null; // Moved to global scope
+let commentsUnsubscribe = null;  // Moved to global scope
 
 // --- SETUP AUDIO FEEDBACK ---
 const flipSound = new Audio('pgflip.mp3'); 
 flipSound.volume = 0.4; 
 
+// --- MASTER INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     loadLibrary();
     setupModalControls();
+    setupCommentControls(); // Initialize comment buttons here!
 });
 
 // --- 1. FETCH & RENDER LIBRARY ---
@@ -138,27 +141,21 @@ async function openBookViewer(pdfUrl) {
         const pdf = await loadingTask.promise;
         const totalPages = pdf.numPages;
 
-        // Track which pages have already been rendered to save memory
         const renderedPages = new Set();
-
-        // Load JUST Page 1 to establish the exact dimensions of the book
         const page1 = await pdf.getPage(1);
         const viewport1 = page1.getViewport({ scale: 1.5 });
         const baseWidth = viewport1.width;
         const baseHeight = viewport1.height;
 
-        // Step 1: Instantly build the physical structure of the book (Empty Pages)
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
-            pageDiv.style.backgroundColor = '#fcfcfc'; // Keeps the 3D paper illusion intact!
+            pageDiv.style.backgroundColor = '#fcfcfc'; 
 
-            // Add the loading text
             const loader = document.createElement('div');
             loader.className = 'lazy-loader';
             loader.innerText = 'Loading...';
 
-            // Add the empty canvas
             const canvas = document.createElement('canvas');
             canvas.className = `canvas-page-${pageNum}`;
             canvas.height = baseHeight;
@@ -169,7 +166,6 @@ async function openBookViewer(pdfUrl) {
             flipbookContainer.appendChild(pageDiv);
         }
 
-        // Add a blank page to the very end if the PDF has an odd number of pages
         if (totalPages % 2 !== 0) {
             const blankPage = document.createElement('div');
             blankPage.className = 'page';
@@ -177,7 +173,6 @@ async function openBookViewer(pdfUrl) {
             flipbookContainer.appendChild(blankPage);
         }
 
-        // Step 2: Initialize StPageFlip immediately (Fraction of a second!)
         loadingScreen.style.display = 'none';
         controls.style.display = 'flex';
 
@@ -197,17 +192,13 @@ async function openBookViewer(pdfUrl) {
 
         currentBook.loadFromHTML(flipbookContainer.querySelectorAll('.page'));
 
-        // =========================================
-        // 🚀 THE LAZY LOADER ENGINE
-        // =========================================
         async function renderLazyPages(currentIndex) {
-            // Calculate safety buffer: Load previous 2 pages, and next 4 pages
             const startPage = Math.max(1, currentIndex - 1); 
             const endPage = Math.min(totalPages, currentIndex + 4); 
 
             for (let i = startPage; i <= endPage; i++) {
-                if (renderedPages.has(i)) continue; // Skip if already painted
-                renderedPages.add(i); // Mark as rendering
+                if (renderedPages.has(i)) continue; 
+                renderedPages.add(i); 
 
                 try {
                     const page = await pdf.getPage(i);
@@ -219,31 +210,24 @@ async function openBookViewer(pdfUrl) {
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
 
-                    // Paint the actual PDF onto the blank canvas
                     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
                     
-                    // Hide the "Loading..." text once painted
                     const loader = canvas.parentElement.querySelector('.lazy-loader');
                     if (loader) loader.style.display = 'none';
 
                 } catch(err) {
                     console.error(`Failed to load page ${i}`, err);
-                    renderedPages.delete(i); // Allow the engine to retry if it fails
+                    renderedPages.delete(i); 
                 }
             }
         }
 
-        // Fire the lazy loader immediately to paint the Cover and first few pages
         renderLazyPages(0);
 
-        // --- PLAY AUDIO & TRIGGER LAZY LOADER ON FLIP ---
         currentBook.on('flip', (e) => {
             document.getElementById('page-counter').innerText = `Page ${e.data + 1} of ${totalPages}`;
-            
             flipSound.currentTime = 0; 
             flipSound.play().catch(err => console.log("Audio play blocked", err));
-
-            // Tell the engine to paint the upcoming pages!
             renderLazyPages(e.data); 
         });
 
@@ -287,13 +271,13 @@ function setupModalControls() {
     document.getElementById('prev-page').addEventListener('click', () => {
         if (currentBook) currentBook.flipPrev();
     });
-// --- COMMENTS SYSTEM ---
-let currentCommentBookId = null;
-let commentsUnsubscribe = null; // Used to stop listening to old books when you close the modal
+} // <-- THIS CLOSING BRACKET WAS THE CULPRIT BEFORE! It is now properly closing the book controls.
 
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Attach listener to open comments (Event Delegation)
+// =========================================
+// 🚀 COMMENTS SYSTEM 
+// =========================================
+function setupCommentControls() {
+    // Attach listener to open comments (Event Delegation allows it to work on newly loaded cards)
     document.getElementById('library-grid').addEventListener('click', (e) => {
         const commentBtn = e.target.closest('.comment-btn');
         if (commentBtn) {
@@ -306,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-comments').addEventListener('click', () => {
         document.getElementById('comments-modal').classList.remove('active');
         if (commentsUnsubscribe) {
-            commentsUnsubscribe(); // Stop downloading comments to save bandwidth
+            commentsUnsubscribe(); // Stop downloading comments to save bandwidth when closed
         }
     });
 
@@ -318,9 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!text || !currentCommentBookId) return;
 
         // Check if user is logged in
-        // IMPORTANT: Ensure you imported 'auth' from firebaseconfig.js at the top of this file!
         let authorName = "Unknown";
-        if (auth.currentUser) {
+        if (auth && auth.currentUser) {
             authorName = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
         }
 
@@ -344,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = false;
         }
     });
-});
+}
 
 // Fetch and display comments in real-time
 function openCommentsModal(bookId) {
@@ -390,5 +373,4 @@ function openCommentsModal(bookId) {
         // Auto-scroll to the very bottom to see the newest comment
         list.scrollTop = list.scrollHeight;
     });
-}
 }
