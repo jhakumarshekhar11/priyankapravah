@@ -1136,6 +1136,43 @@ h1, h2, h3 {
     height: 12px;
     border-radius: 50%;
 }
+
+/* =========================================
+   Admin List Updates (Search, Covers, & Hide Fix)
+   ========================================= */
+/* THE FIX: Actually hide the extra items! */
+.hidden-item {
+    display: none !important; 
+}
+
+/* The new miniature cover image */
+.manage-thumb {
+    width: 45px;
+    height: 60px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background-color: var(--soft-amethyst); /* Fallback color */
+}
+
+/* The Search Bar */
+.admin-search-bar {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.admin-search-bar:focus {
+    outline: none;
+    border-color: var(--berry-magenta);
+    box-shadow: 0 0 0 3px rgba(194, 26, 92, 0.1);
+}
+
 .dot-ebook { background-color: var(--berry-magenta); }
 .dot-mag { background-color: var(--elegant-gold); }
 

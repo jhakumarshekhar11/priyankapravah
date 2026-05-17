@@ -65,7 +65,6 @@ async function loadRecentUploads() {
     const showMoreBtn = document.getElementById('show-more-btn');
     if (!listContainer) return;
 
-    // THE FIX: Inject 3 horizontal shimmering rows
     listContainer.innerHTML = `
         <div class="skeleton-row"></div>
         <div class="skeleton-row"></div>
@@ -73,10 +72,11 @@ async function loadRecentUploads() {
     `;
 
     try {
-        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(10));
+        // INCREASED LIMIT TO 50 so the search bar is actually useful!
+        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(50));
         const querySnapshot = await getDocs(q);
 
-        listContainer.innerHTML = ''; // Clear skeletons when data arrives
+        listContainer.innerHTML = ''; 
 
         if (querySnapshot.empty) {
             listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 2rem 0;">No publications found. Publish one!</p>';
@@ -89,15 +89,19 @@ async function loadRecentUploads() {
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const docId = docSnap.id;
-            let dotClass = data.type === 'magazine' ? 'dot-mag' : 'dot-ebook'; 
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Unknown";
 
-            const hiddenClass = index >= 3 ? 'hidden-item' : '';
+            // Hide anything after the first 4 items
+            const hiddenClass = index >= 4 ? 'hidden-item' : '';
+            
+            // Use their cover image, or a blank placeholder if they didn't upload one
+            const coverSrc = data.coverImageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
+            // ADDED: data-title attribute to make searching super fast
             const itemHtml = `
-                <div class="manage-item ${hiddenClass}" data-id="${docId}">
+                <div class="manage-item ${hiddenClass}" data-id="${docId}" data-title="${data.title.toLowerCase()}">
                     <div class="manage-info">
-                        <div class="manage-dot ${dotClass}"></div>
+                        <img src="${coverSrc}" class="manage-thumb" alt="Cover">
                         <div>
                             <h4>${data.title}</h4>
                             <p>${typeText} • ${data.publishDate}</p>
@@ -114,7 +118,7 @@ async function loadRecentUploads() {
         });
 
         if (showMoreBtn) {
-            if (index > 3) {
+            if (index > 4) {
                 showMoreBtn.style.display = 'block';
             } else {
                 showMoreBtn.style.display = 'none';
@@ -133,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UI Elements
     const showMoreBtn = document.getElementById('show-more-btn');
+    const searchInput = document.getElementById('admin-search'); // NEW
     const uploadForm = document.querySelector('.admin-form');
     const submitBtn = uploadForm ? uploadForm.querySelector('button[type="submit"]') : null;
     const formHeading = document.querySelector('.admin-heading');
@@ -140,14 +145,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const docInput = document.getElementById('doc-file');
     const cancelEditBtn = document.getElementById('cancel-edit-btn'); 
 
+    // --- LIVE SEARCH LOGIC ---
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allItems = document.querySelectorAll('.manage-item');
+            
+            allItems.forEach(item => {
+                const title = item.getAttribute('data-title');
+                
+                if (title.includes(searchTerm)) {
+                    // Show matching items and FORCE them to ignore the hidden-item class
+                    item.style.display = 'flex'; 
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hide the "Show More" button if they are actively typing a search
+            if (searchTerm.length > 0) {
+                if (showMoreBtn) showMoreBtn.style.display = 'none';
+            } else {
+                // If they clear the search, reset everything back to normal
+                allItems.forEach(item => item.style.display = ''); 
+                if (showMoreBtn && allItems.length > 4) showMoreBtn.style.display = 'block';
+            }
+        });
+    }
+
     // Handle "Show More" Button Click
     if (showMoreBtn) {
         showMoreBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            // Find all hidden items and remove the class so they appear
             document.querySelectorAll('.hidden-item').forEach(item => {
                 item.classList.remove('hidden-item');
             });
-            showMoreBtn.style.display = 'none'; 
+            showMoreBtn.style.display = 'none'; // Hide button after clicking
         });
     }
 
