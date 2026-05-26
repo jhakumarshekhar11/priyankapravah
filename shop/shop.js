@@ -22,7 +22,7 @@ async function loadShop() {
             const coverImage = data.images && data.images.length > 0 ? data.images[0] : 'placeholder.jpg'; 
 
             const cardHtml = `
-                <article class="library-card reveal delay-1 active" style="cursor: pointer;" onclick="window.location.href='/product.html?id=${docId}'">
+                <article class="library-card reveal delay-1 active" style="cursor: pointer;" onclick="window.location.href='/product/?id=${docId}'">
                     <img src="${coverImage}" alt="${data.title}" style="width: 100%; height: 350px; object-fit: cover; border-bottom: 1px solid #eee;">
                     <div class="library-info">
                         <h3 class="library-title">${data.title}</h3>
