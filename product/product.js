@@ -44,7 +44,7 @@ function renderProduct(product) {
 
     // Construct the WhatsApp message URL. Replace the phone number with your own.
     const whatsappMessage = encodeURIComponent(`Hello, I'm interested in buying the product: "${product.title}".`);
-    const whatsappUrl = `https://wa.me/910000000000?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
+    const whatsappUrl = `https://wa.me/918210576238?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
 
     const productHtml = `
         <div class="product-grid">

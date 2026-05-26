@@ -23,7 +23,7 @@ async function loadShop() {
 
             // Construct the WhatsApp message URL. Replace the phone number with your own.
             const whatsappMessage = encodeURIComponent(`Hello, I'm interested in buying the product: "${data.title}".`);
-            const whatsappUrl = `https://wa.me/910000000000?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
+            const whatsappUrl = `https://wa.me/918210576238?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
 
             const cardHtml = `
                 <article class="library-card reveal delay-1 active" style="cursor: pointer;" onclick="window.location.href='/product/index.html?id=${docId}'">
