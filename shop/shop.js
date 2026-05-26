@@ -19,15 +19,19 @@ async function loadShop() {
             const docId = docSnap.id;
             
             // Grab the first image to use as the cover
-            const coverImage = data.images && data.images.length > 0 ? data.images[0] : 'placeholder.jpg'; 
+            const coverImage = data.images && data.images.length > 0 ? data.images[0] : 'placeholder.jpg';
+
+            // Construct the WhatsApp message URL. Replace the phone number with your own.
+            const whatsappMessage = encodeURIComponent(`Hello, I'm interested in buying the product: "${data.title}".`);
+            const whatsappUrl = `https://wa.me/910000000000?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
 
             const cardHtml = `
-                <article class="library-card reveal delay-1 active" style="cursor: pointer;" onclick="window.location.href='/product/?id=${docId}'">
+                <article class="library-card reveal delay-1 active" style="cursor: pointer;" onclick="window.location.href='/product/index.html?id=${docId}'">
                     <img src="${coverImage}" alt="${data.title}" style="width: 100%; height: 350px; object-fit: cover; border-bottom: 1px solid #eee;">
                     <div class="library-info">
                         <h3 class="library-title">${data.title}</h3>
                         <p style="font-size: 1.3rem; font-weight: 700; color: var(--berry-magenta); margin-top: 0.5rem;">₹${data.price}</p>
-                        <button class="cta-button secondary-cta full-width" style="margin-top: 1rem;">Buy Now</button>
+                        <button onclick="event.stopPropagation(); window.open('${whatsappUrl}', '_blank');" class="cta-button secondary-cta full-width" style="margin-top: 1rem;">Buy Now</button>
                     </div>
                 </article>
             `;
