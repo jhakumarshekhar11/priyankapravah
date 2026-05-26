@@ -73,21 +73,51 @@ function renderLatestRelease(latestPub) {
     
     // Using 'contain' here to fix the zoom issue on the homepage too!
     const bgStyle = latestPub.coverImageUrl 
-        ? `background: url('${latestPub.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` 
+        ? `background: url('${escapeHtml(latestPub.coverImageUrl)}') center/contain no-repeat; background-color: #f4f0f5;` 
         : `background: linear-gradient(45deg, var(--berry-magenta), var(--royal-purple));`;
 
-    container.innerHTML = `
-        <h2 class="section-heading left-align">Latest Release</h2>
-        <div class="recent-card">
-            <div class="recent-cover" style="${bgStyle}"></div>
-            <div class="recent-details">
-                <h3>${latestPub.title}</h3>
-                <p class="pub-date">Published: ${dateText}</p>
-                <p class="pub-desc">${descText}</p>
-                <a href="https://priyankapravah.live/rcorner/" class="cta-button outline-cta">Read Now</a>
-            </div>
-        </div>
-    `;
+    // SECURITY FIX: Build DOM elements safely to prevent XSS
+    const heading = document.createElement('h2');
+    heading.className = 'section-heading left-align';
+    heading.textContent = 'Latest Release';
+    
+    const recentCard = document.createElement('div');
+    recentCard.className = 'recent-card';
+    
+    const recentCover = document.createElement('div');
+    recentCover.className = 'recent-cover';
+    recentCover.style.cssText = bgStyle;
+    
+    const recentDetails = document.createElement('div');
+    recentDetails.className = 'recent-details';
+    
+    const title = document.createElement('h3');
+    title.textContent = latestPub.title || 'New Release'; // Use textContent to prevent XSS
+    
+    const pubDate = document.createElement('p');
+    pubDate.className = 'pub-date';
+    pubDate.textContent = `Published: ${escapeHtml(dateText)}`;
+    
+    const pubDesc = document.createElement('p');
+    pubDesc.className = 'pub-desc';
+    pubDesc.textContent = escapeHtml(descText); // Use textContent to prevent XSS
+    
+    const readLink = document.createElement('a');
+    readLink.href = 'https://priyankapravah.live/rcorner/';
+    readLink.className = 'cta-button outline-cta';
+    readLink.textContent = 'Read Now';
+    
+    recentDetails.appendChild(title);
+    recentDetails.appendChild(pubDate);
+    recentDetails.appendChild(pubDesc);
+    recentDetails.appendChild(readLink);
+    
+    recentCard.appendChild(recentCover);
+    recentCard.appendChild(recentDetails);
+    
+    container.innerHTML = ''; // Clear skeletons
+    container.appendChild(heading);
+    container.appendChild(recentCard);
 }
 
 function renderMarquee(pubs) {
@@ -101,23 +131,33 @@ function renderMarquee(pubs) {
         displayPubs = displayPubs.concat(pubs); 
     }
 
-    let htmlString = '';
+    // SECURITY FIX: Build DOM elements safely to prevent XSS from titles
     displayPubs.forEach(pub => {
         // Using 'contain' here for the scrolling covers
         const bgStyle = pub.coverImageUrl 
-            ? `background: url('${pub.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` 
+            ? `background: url('${escapeHtml(pub.coverImageUrl)}') center/contain no-repeat; background-color: #f4f0f5;` 
             : `background: linear-gradient(135deg, var(--soft-amethyst), var(--royal-purple));`;
 
-        htmlString += `
-        <div class="pub-card">
-            <div class="pub-cover" style="${bgStyle}"></div>
-            <h3>${pub.title}</h3>
-        </div>`;
+        const pubCard = document.createElement('div');
+        pubCard.className = 'pub-card';
+        
+        const pubCover = document.createElement('div');
+        pubCover.className = 'pub-cover';
+        pubCover.style.cssText = bgStyle;
+        
+        const title = document.createElement('h3');
+        title.textContent = pub.title || 'Publication'; // Use textContent to prevent XSS
+        
+        pubCard.appendChild(pubCover);
+        pubCard.appendChild(title);
+        
+        track.appendChild(pubCard);
+        
+        // For infinite scroll, we need to duplicate the content
+        // Since we're using DOM elements, we need to clone them
+        const clonedCard = pubCard.cloneNode(true);
+        track.appendChild(clonedCard);
     });
-
-    // To make the infinite scroll CSS animation work seamlessly, 
-    // we must put TWO identical copies of the list inside the track.
-    track.innerHTML = htmlString + htmlString;
 
     // Dynamically adjust the track width based on how many items we injected
     const totalItems = displayPubs.length * 2;
@@ -125,4 +165,14 @@ function renderMarquee(pubs) {
     
     // Adjust animation speed so it doesn't go too fast if there are lots of books
     track.style.animationDuration = `${totalItems * 3}s`;
+}
+
+/**
+ * Helper function to escape HTML special characters
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

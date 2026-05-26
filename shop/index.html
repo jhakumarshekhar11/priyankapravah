@@ -17,21 +17,28 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="brand-logo">
+            <a href="https://priyankapravah.live/" class="brand-logo">
                 <span class="brand-primary">Priyanka</span><span class="brand-secondary">Pravah</span>
             </a>
-            
+
             <input type="checkbox" id="nav-toggle" class="nav-toggle">
             <label for="nav-toggle" class="nav-toggle-label">
                 <span></span>
             </label>
 
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
                 <li><a href="/about/">About</a></li>
                 <li><a href="/rcorner/">Reading Corner</a></li>
                 <li><a href="/shop/" class="active">Shop</a></li>
-                <li><a href="/login/" class="cta-button btn-login">Login</a></li>
+
+                <li id="nav-admin" class="hidden"><a href="/admin/">Admin</a></li>
+
+                <li id="nav-login"><a href="/login/" class="btn-login">Login</a></li>
+
+                <li id="nav-logout" class="hidden">
+                    <a href="#" class="btn-login"
+                        style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -104,6 +111,8 @@
     </footer>
 
     <script type="module" src="/footer.js"></script>
+    <script src="/script.js"></script>
+    <script type="module" src="/globalauth.js"></script>
     <script type="module" src="shop.js"></script>
 
 </body>

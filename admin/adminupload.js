@@ -1,14 +1,29 @@
 // adminupload.js
 // ADDED: 'where' to the imports
 import { db, collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, deleteDoc, updateDoc, getDoc, limit, where} from '../firebaseconfig.js';
+import { CONFIG } from '../config.js';
 
 const CLOUD_NAME = 'dghjvaonc'; 
 const UPLOAD_PRESET = 'priyankapravah'; 
+
+// SECURITY: File size limits
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // --- STATE VARIABLES FOR EDITING ---
 let editingDocId = null;
 let existingCoverUrl = "";
 let existingDocUrl = "";
+
+/**
+ * Helper function to escape HTML special characters to prevent XSS
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 // --- TOAST & MODAL LOGIC ---
 function showToast(message, type = 'default') {
@@ -97,13 +112,17 @@ async function loadRecentUploads() {
             // Use their cover image, or a blank placeholder if they didn't upload one
             const coverSrc = data.coverImageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
+            // SECURITY FIX: Escape title to prevent XSS when used in data attributes and HTML
+            const escapedTitle = escapeHtml(data.title);
+            const dataTitle = escapedTitle.toLowerCase();
+
             // ADDED: data-title attribute to make searching super fast
             const itemHtml = `
-                <div class="manage-item ${hiddenClass}" data-id="${docId}" data-title="${data.title.toLowerCase()}">
+                <div class="manage-item ${hiddenClass}" data-id="${docId}" data-title="${dataTitle}">
                     <div class="manage-info">
-                        <img src="${coverSrc}" class="manage-thumb" alt="Cover">
+                        <img src="${escapedTitle ? '' : coverSrc}" class="manage-thumb" alt="Cover">
                         <div>
-                            <h4>${data.title}</h4>
+                            <h4>${escapedTitle}</h4>
                             <p>${typeText} • ${data.publishDate}</p>
                         </div>
                     </div>
@@ -113,7 +132,24 @@ async function loadRecentUploads() {
                     </div>
                 </div>
             `;
-            listContainer.insertAdjacentHTML('beforeend', itemHtml);
+            
+            // Revert to show the cover image properly
+            const itemHtmlCorrect = `
+                <div class="manage-item ${hiddenClass}" data-id="${docId}" data-title="${dataTitle}">
+                    <div class="manage-info">
+                        <img src="${coverSrc}" class="manage-thumb" alt="Cover">
+                        <div>
+                            <h4>${escapedTitle}</h4>
+                            <p>${typeText} • ${data.publishDate}</p>
+                        </div>
+                    </div>
+                    <div class="manage-actions">
+                        <button class="action-btn edit-btn" title="Edit">✎</button>
+                        <button class="action-btn delete-btn" title="Delete">🗑</button>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', itemHtmlCorrect);
             index++;
         });
 
@@ -303,6 +339,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // SECURITY FIX: Validate file sizes
+            if (docFile && docFile.size > MAX_FILE_SIZE) {
+                showToast(`Document file too large. Max: 50MB, Got: ${(docFile.size / 1024 / 1024).toFixed(2)}MB`, "error");
+                return;
+            }
+
+            if (coverFile && coverFile.size > MAX_IMAGE_SIZE) {
+                showToast(`Cover image too large. Max: 10MB, Got: ${(coverFile.size / 1024 / 1024).toFixed(2)}MB`, "error");
+                return;
+            }
+
+            // SECURITY FIX: Validate title
+            if (!title || title.length < 2) {
+                showToast("Title must be at least 2 characters long.", "error");
+                return;
+            }
+
+            if (title.length > 500) {
+                showToast("Title must be less than 500 characters.", "error");
+                return;
+            }
+
             // Save original button state
             const originalBtnText = submitBtn.innerText;
             const originalBg = submitBtn.style.background;
@@ -454,9 +512,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const imageFiles = document.getElementById('prod-images').files;
             const submitBtn = document.getElementById('prod-submit-btn');
 
+            // SECURITY FIX: Validate product title
+            if (!title || title.length < 2) {
+                showToast("Product title must be at least 2 characters long.", "error");
+                return;
+            }
+
+            if (title.length > 500) {
+                showToast("Product title must be less than 500 characters.", "error");
+                return;
+            }
+
+            // SECURITY FIX: Validate price
+            const priceNum = Number(price);
+            if (isNaN(priceNum) || priceNum <= 0) {
+                showToast("Price must be a positive number greater than 0.", "error");
+                return;
+            }
+
+            // SECURITY FIX: Validate description
+            if (desc.length > 2000) {
+                showToast("Description must be less than 2000 characters.", "error");
+                return;
+            }
+
+            // SECURITY FIX: Validate image files
             if (imageFiles.length === 0) {
                 showToast("Please select at least one image.", "error");
                 return;
+            }
+
+            // SECURITY FIX: Validate file sizes
+            for (let i = 0; i < imageFiles.length; i++) {
+                const file = imageFiles[i];
+                if (file.size > MAX_IMAGE_SIZE) {
+                    showToast(`Image ${i + 1} too large. Max: 10MB, Got: ${(file.size / 1024 / 1024).toFixed(2)}MB`, "error");
+                    return;
+                }
             }
 
             submitBtn.innerText = "Uploading Images...";

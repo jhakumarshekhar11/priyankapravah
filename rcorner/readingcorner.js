@@ -372,19 +372,33 @@ function openCommentsModal(bookId) {
             
             // Format the timestamp nicely
             let timeString = "Just now";
-            if (data.timestamp) {
+            if (data.timestamp && typeof data.timestamp.toDate === 'function') {
                 const date = data.timestamp.toDate();
                 timeString = date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
 
-            const commentHtml = `
-                <div class="comment-item">
-                    <div class="comment-author">${data.author}</div>
-                    <span class="comment-date">${timeString}</span>
-                    <div class="comment-body">${data.text}</div>
-                </div>
-            `;
-            list.insertAdjacentHTML('beforeend', commentHtml);
+            // SECURITY FIX: Use textContent instead of innerHTML to prevent XSS
+            // This prevents malicious scripts in user comments from executing
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment-item';
+            
+            const authorDiv = document.createElement('div');
+            authorDiv.className = 'comment-author';
+            authorDiv.textContent = data.author || 'Anonymous';
+            
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'comment-date';
+            dateSpan.textContent = timeString;
+            
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'comment-body';
+            bodyDiv.textContent = data.text || ''; // Use textContent to prevent XSS
+            
+            commentDiv.appendChild(authorDiv);
+            commentDiv.appendChild(dateSpan);
+            commentDiv.appendChild(bodyDiv);
+            
+            list.appendChild(commentDiv);
         });
 
         // Auto-scroll to the very bottom to see the newest comment

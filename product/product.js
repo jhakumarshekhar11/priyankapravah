@@ -1,4 +1,6 @@
 import { db, getDoc, doc } from '../firebaseconfig.js';
+import { getWhatsAppUrl } from '../utils.js';
+import { CONFIG } from '../config.js';
 
 async function loadProductDetails() {
     const container = document.getElementById('product-details-container');
@@ -38,36 +40,78 @@ function renderProduct(product) {
     let thumbnailHtml = '';
     if (product.images && product.images.length > 1) {
         product.images.forEach(imgUrl => {
-            thumbnailHtml += `<img src="${imgUrl}" alt="Thumbnail" class="thumbnail-img">`;
+            // Escape image URL to prevent XSS via URL injection
+            const escapedUrl = escapeHtml(imgUrl);
+            thumbnailHtml += `<img src="${escapedUrl}" alt="Thumbnail" class="thumbnail-img">`;
         });
     }
 
-    // Construct the WhatsApp message URL. Replace the phone number with your own.
-    const whatsappMessage = encodeURIComponent(`Hello, I'm interested in buying the product: "${product.title}".`);
-    const whatsappUrl = `https://wa.me/918210576238?text=${whatsappMessage}`; // <-- TODO: REPLACE PHONE NUMBER
+    // Use phone number from config instead of hardcoded
+    const phoneNumber = CONFIG.CONTACT.WHATSAPP;
+    const whatsappMessage = `Hello, I'm interested in buying the product: "${product.title}".`;
+    const whatsappUrl = getWhatsAppUrl(phoneNumber, whatsappMessage);
 
-    const productHtml = `
-        <div class="product-grid">
-            <div class="product-image-gallery">
-                <div class="main-image-wrapper">
-                    <img src="${mainImage}" alt="${product.title}" id="main-product-image">
-                </div>
-                <div class="thumbnail-strip">
-                    ${thumbnailHtml}
-                </div>
-            </div>
-            <div class="product-info">
-                <h1 class="product-title">${product.title}</h1>
-                <p class="product-price">₹${product.price}</p>
-                <div class="product-description">
-                    <p>${product.description.replace(/\n/g, '<br>')}</p>
-                </div>
-                <button onclick="window.open('${whatsappUrl}', '_blank');" class="cta-button secondary-cta full-width">Buy Now</button>
-            </div>
-        </div>
-    `;
+    // SECURITY FIX: Build DOM elements safely instead of using innerHTML
+    // This prevents XSS attacks from malicious product data
+    const productGrid = document.createElement('div');
+    productGrid.className = 'product-grid';
 
-    container.innerHTML = productHtml;
+    // Left side: Image gallery
+    const imageGallery = document.createElement('div');
+    imageGallery.className = 'product-image-gallery';
+    
+    const mainImageWrapper = document.createElement('div');
+    mainImageWrapper.className = 'main-image-wrapper';
+    const mainImg = document.createElement('img');
+    mainImg.src = escapeHtml(mainImage);
+    mainImg.alt = product.title || 'Product image';
+    mainImg.id = 'main-product-image';
+    mainImageWrapper.appendChild(mainImg);
+    
+    const thumbnailStrip = document.createElement('div');
+    thumbnailStrip.className = 'thumbnail-strip';
+    thumbnailStrip.innerHTML = thumbnailHtml; // Safe because we escaped URLs above
+    
+    imageGallery.appendChild(mainImageWrapper);
+    imageGallery.appendChild(thumbnailStrip);
+
+    // Right side: Product info
+    const productInfo = document.createElement('div');
+    productInfo.className = 'product-info';
+    
+    const title = document.createElement('h1');
+    title.className = 'product-title';
+    title.textContent = product.title || 'Product'; // Use textContent to prevent XSS
+    
+    const price = document.createElement('p');
+    price.className = 'product-price';
+    price.textContent = `₹${product.price || 'N/A'}`;
+    
+    const descriptionContainer = document.createElement('div');
+    descriptionContainer.className = 'product-description';
+    const descParagraph = document.createElement('p');
+    // Convert newlines to <br> tags but prevent XSS
+    const descriptionText = (product.description || '').split('\n').map(line => escapeHtml(line)).join('<br>');
+    descParagraph.innerHTML = descriptionText; // Safe because we escaped each line
+    descriptionContainer.appendChild(descParagraph);
+    
+    const buyButton = document.createElement('button');
+    buyButton.className = 'cta-button secondary-cta full-width';
+    buyButton.textContent = 'Buy Now';
+    buyButton.addEventListener('click', () => {
+        window.open(whatsappUrl, '_blank');
+    });
+    
+    productInfo.appendChild(title);
+    productInfo.appendChild(price);
+    productInfo.appendChild(descriptionContainer);
+    productInfo.appendChild(buyButton);
+    
+    productGrid.appendChild(imageGallery);
+    productGrid.appendChild(productInfo);
+    
+    container.innerHTML = ''; // Clear old content
+    container.appendChild(productGrid);
     
     // Add interactivity to thumbnails
     const thumbnails = container.querySelectorAll('.thumbnail-img');
@@ -78,16 +122,27 @@ function renderProduct(product) {
             // Remove active state from all thumbnails
             thumbnails.forEach(t => t.classList.remove('active'));
             // Set the main image source to the clicked thumbnail's source
-            mainProductImage.src = thumb.src;
+            // Escape URL to prevent javascript: protocol attacks
+            const thumbSrc = thumb.getAttribute('src');
+            mainProductImage.src = thumbSrc;
             // Add active state to the clicked thumbnail
             thumb.classList.add('active');
         });
     });
-
-    // Set the first thumbnail as active by default
+    
     if (thumbnails.length > 0) {
         thumbnails[0].classList.add('active');
     }
+}
+
+/**
+ * Helper function to escape HTML special characters
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 document.addEventListener('DOMContentLoaded', loadProductDetails);

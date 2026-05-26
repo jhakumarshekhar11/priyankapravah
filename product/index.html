@@ -16,25 +16,33 @@
     <!-- =========================================
        Navigation Bar (Dynamically Handled)
        ========================================= -->
-    <header class="navbar">
-        <nav class="nav-container">
-            <a href="/index.html" class="brand-logo">
-                <span class="brand-primary">Priyanka</span>
-                <span class="brand-secondary">Pravah</span>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="https://priyankapravah.live/" class="brand-logo">
+                <span class="brand-primary">Priyanka</span><span class="brand-secondary">Pravah</span>
             </a>
+
             <input type="checkbox" id="nav-toggle" class="nav-toggle">
-            <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+            <label for="nav-toggle" class="nav-toggle-label">
+                <span></span>
+            </label>
+
             <ul class="nav-links">
-                <li><a href="/index.html">Home</a></li>
-                <li><a href="/about/index.html">About</a></li>
-                <li><a href="/rcorner/index.html">Reading Corner</a></li>
-                <li><a href="/shop/index.html">Shop</a></li>
-                <li id="nav-admin" class="hidden"><a href="/admin/index.html">Admin</a></li>
-                <li id="nav-login"><a href="/login.html" class="cta-button btn-login">Login</a></li>
-                <li id="nav-logout" class="hidden"><a href="#" class="cta-button btn-login">Logout</a></li>
+                <li><a href="/about/">About</a></li>
+                <li><a href="/rcorner/">Reading Corner</a></li>
+                <li><a href="/shop/">Shop</a></li>
+
+                <li id="nav-admin" class="hidden"><a href="/admin/">Admin</a></li>
+
+                <li id="nav-login"><a href="/login/" class="btn-login">Login</a></li>
+
+                <li id="nav-logout" class="hidden">
+                    <a href="#" class="btn-login"
+                        style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a>
+                </li>
             </ul>
-        </nav>
-    </header>
+        </div>
+    </nav>
 
     <!-- =========================================
        Main Product Details Section

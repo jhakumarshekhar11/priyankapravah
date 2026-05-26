@@ -2,13 +2,30 @@ import { auth, signOut, onAuthStateChanged, googleProvider, signInWithPopup, sig
 // NOTE: We need GoogleAuthProvider specifically to format the credential
 import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const ADMIN_UIDS = [
-    "oJIKlGUW0ca9Z21VIaIYn3Rsvre2", // Admin 1
-    "xCROrNRjgrSmVh57NH84diZ0prT2"  // Admin 2
-]; 
+// SECURITY FIX: Admin roles now verified via Firebase Custom Claims (server-side)
+// DO NOT hardcode admin UIDs in client code
+// Instead, use Firebase Security Rules to verify role: request.auth.token.admin == true
 
-// YOUR GOOGLE CLIENT ID FOR ONE TAP
+// YOUR GOOGLE CLIENT ID FOR ONE TAP (OK to keep public - OAuth handles security)
 const GOOGLE_CLIENT_ID = "895455395916-4921fqvivmo6gj0aegeksnha1l4pefs2.apps.googleusercontent.com";
+
+/**
+ * Check if current user is admin by verifying custom claims
+ * This requires Firebase Custom Claims to be set server-side
+ * @param {object} user - Firebase Auth user object
+ * @returns {boolean} - True if user has admin claim
+ */
+async function isUserAdmin(user) {
+    if (!user) return false;
+    try {
+        // Get fresh token claims from Firebase
+        const idTokenResult = await user.getIdTokenResult();
+        return idTokenResult.claims.admin === true;
+    } catch (error) {
+        console.error("Error checking admin status:", error);
+        return false;
+    }
+}
 
 // --- TOAST NOTIFICATION LOGIC ---
 function showToast(message, type = 'default') {
@@ -38,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 1. ROUTE GUARDS & AUTH STATE LISTENER
     // =========================================
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         const currentPath = window.location.pathname;
         const isAuthPage = currentPath.includes('/login') || currentPath.includes('/signup');
         const isAdminPage = currentPath.includes('/admin');
@@ -49,7 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.replace("/rcorner/index.html"); 
                 return; 
             }
-            if (isAdminPage && !ADMIN_UIDS.includes(user.uid)) {
+            
+            // Check admin status via Firebase Custom Claims
+            const isAdmin = await isUserAdmin(user);
+            
+            if (isAdminPage && !isAdmin) {
                 window.location.replace("/index.html"); 
                 return;
             }
@@ -57,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navLogin) navLogin.classList.add('hidden');
             if (navLogout) navLogout.classList.remove('hidden');
 
-            if (ADMIN_UIDS.includes(user.uid)) {
+            if (isAdmin) {
                 if (navAdmin) navAdmin.classList.remove('hidden');
             } else {
                 if (navAdmin) navAdmin.classList.add('hidden');
