@@ -120,6 +120,34 @@
                 </form>
             </div>
 
+            <div class="admin-card" style="margin-top: 2rem;">
+    <h2 class="admin-heading">Add Physical Book to Shop</h2>
+    <form id="add-product-form" class="admin-form">
+        <div class="input-row">
+            <div class="input-group">
+                <label>Product Title</label>
+                <input type="text" id="prod-title" required>
+            </div>
+            <div class="input-group">
+                <label>Price (₹)</label>
+                <input type="number" id="prod-price" required min="1">
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label>Description</label>
+            <textarea id="prod-desc" rows="4" required></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Product Images (Select multiple)</label>
+            <input type="file" id="prod-images" accept="image/*" multiple required style="padding: 1rem; border: 2px dashed #ccc; cursor: pointer;">
+        </div>
+
+        <button type="submit" id="prod-submit-btn" class="cta-button primary-cta full-width" style="margin-top: 1rem;">Upload Product</button>
+    </form>
+</div>
+
             <div class="summary-card admin-card">
                 <h2 class="admin-heading">Manage Library</h2>
                         
