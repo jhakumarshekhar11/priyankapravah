@@ -1458,6 +1458,40 @@ h1, h2, h3 {
 .btn-confirm-delete:hover { background: #c53024; }
 
 /* =========================================
+   Admin Page Tabs
+   ========================================= */
+.admin-tab-nav {
+    display: flex;
+    border-bottom: 2px solid var(--off-white);
+    margin-bottom: 1.5rem;
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--soft-amethyst);
+    cursor: pointer;
+    position: relative;
+    top: 2px;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-link.active {
+    color: var(--royal-purple);
+    border-bottom-color: var(--berry-magenta);
+}
+
+.admin-tab-content {
+    display: none;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+/* =========================================
    3D Book Viewer Modal Styles
    ========================================= */
 .book-modal-overlay {

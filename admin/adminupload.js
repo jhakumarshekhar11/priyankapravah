@@ -439,6 +439,57 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // =========================================
+    // 🛒 E-COMMERCE: ADD PRODUCT LOGIC
+    // =========================================
+    const addProductForm = document.getElementById('add-product-form');
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('prod-title').value.trim();
+            const price = document.getElementById('prod-price').value;
+            const desc = document.getElementById('prod-desc').value.trim();
+            const imageFiles = document.getElementById('prod-images').files;
+            const submitBtn = document.getElementById('prod-submit-btn');
+
+            if (imageFiles.length === 0) {
+                showToast("Please select at least one image.", "error");
+                return;
+            }
+
+            submitBtn.innerText = "Uploading Images...";
+            submitBtn.disabled = true;
+
+            try {
+                const uploadPromises = Array.from(imageFiles).map(file => 
+                    uploadToCloudinaryXHR(file, 'image', () => {})
+                );
+                
+                const imageUrls = await Promise.all(uploadPromises);
+
+                submitBtn.innerText = "Saving to Shop...";
+                await addDoc(collection(db, "products"), {
+                    title: title,
+                    price: Number(price),
+                    description: desc,
+                    images: imageUrls,
+                    createdAt: serverTimestamp()
+                });
+
+                showToast("Product added to shop successfully!", "success");
+                addProductForm.reset();
+
+            } catch (error) {
+                console.error("Error adding product:", error);
+                showToast("Failed to upload product.", "error");
+            } finally {
+                submitBtn.innerText = "Upload Product";
+                submitBtn.disabled = false;
+            }
+        });
+    }
 });
 
 // Helper Function
@@ -473,59 +524,4 @@ function uploadToCloudinaryXHR(file, resourceType, onProgress) {
 
         xhr.send(formData);
     });
-
-    // =========================================
-    // 🛒 E-COMMERCE: ADD PRODUCT LOGIC
-    // =========================================
-    const addProductForm = document.getElementById('add-product-form');
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const title = document.getElementById('prod-title').value.trim();
-            const price = document.getElementById('prod-price').value;
-            const desc = document.getElementById('prod-desc').value.trim();
-            const imageFiles = document.getElementById('prod-images').files;
-            const submitBtn = document.getElementById('prod-submit-btn');
-
-            if (imageFiles.length === 0) {
-                showToast("Please select at least one image.", "error");
-                return;
-            }
-
-            submitBtn.innerText = "Uploading Images...";
-            submitBtn.disabled = true;
-
-            try {
-                // 1. Upload all images to Cloudinary concurrently using your existing helper!
-                // We pass an empty function for progress since doing progress bars for multiple files gets messy
-                const uploadPromises = Array.from(imageFiles).map(file => 
-                    uploadToCloudinaryXHR(file, 'image', () => {})
-                );
-                
-                // Wait for ALL images to finish uploading
-                const imageUrls = await Promise.all(uploadPromises);
-
-                // 2. Save product to Firestore
-                submitBtn.innerText = "Saving to Shop...";
-                await addDoc(collection(db, "products"), {
-                    title: title,
-                    price: Number(price),
-                    description: desc,
-                    images: imageUrls, // Saves the array of secure URLs
-                    createdAt: serverTimestamp()
-                });
-
-                showToast("Product added to shop successfully!", "success");
-                addProductForm.reset();
-
-            } catch (error) {
-                console.error("Error adding product:", error);
-                showToast("Failed to upload product.", "error");
-            } finally {
-                submitBtn.innerText = "Upload Product";
-                submitBtn.disabled = false;
-            }
-        });
-    }
 }
