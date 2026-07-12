@@ -7,51 +7,281 @@
     <title>Login | Priyanka Pravah</title>
     <link rel="stylesheet" href="/style.css" />
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
-
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap"
         rel="stylesheet" />
+
+    <style>
+        /* ── Method Toggle Pill ─────────────────────────────── */
+        .auth-method-toggle {
+            display: flex;
+            background: var(--off-white);
+            border: 1px solid rgba(155, 101, 159, 0.2);
+            border-radius: 30px;
+            padding: 4px;
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .auth-method-toggle button {
+            flex: 1;
+            padding: 0.55rem 0.5rem;
+            border: none;
+            border-radius: 26px;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.25s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-method-toggle .toggle-indicator {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            height: calc(100% - 8px);
+            width: calc(50% - 4px);
+            background: var(--crisp-white);
+            border-radius: 26px;
+            box-shadow: 0 1px 6px rgba(43, 14, 68, 0.1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .auth-method-toggle.phone-active .toggle-indicator {
+            transform: translateX(calc(100% + 4px));
+        }
+
+        .auth-method-toggle button.active {
+            color: var(--royal-purple);
+            font-weight: 600;
+        }
+
+        /* ── Form Panels ────────────────────────────────────── */
+        .auth-panel {
+            display: none;
+            animation: panelFadeIn 0.3s ease-out;
+        }
+        .auth-panel.active { display: block; }
+
+        @keyframes panelFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Phone Input Row ────────────────────────────────── */
+        .phone-row {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .country-code-select {
+            width: 110px;
+            flex-shrink: 0;
+            padding: 0.8rem 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            background-color: #fcfcfc;
+            color: var(--royal-purple);
+            cursor: pointer;
+            transition: var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239B659F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            padding-right: 1.8rem;
+        }
+
+        .country-code-select:focus {
+            outline: none;
+            border-color: var(--berry-magenta);
+            background-color: var(--crisp-white);
+            box-shadow: 0 0 0 3px rgba(194, 26, 92, 0.1);
+        }
+
+        .phone-row .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* ── OTP Step ───────────────────────────────────────── */
+        #otp-step { display: none; }
+        #otp-step.active { display: block; animation: panelFadeIn 0.3s ease-out; }
+
+        .otp-hint {
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 1.4rem;
+            line-height: 1.5;
+        }
+        .otp-hint strong { color: var(--royal-purple); }
+
+        .otp-inputs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.4rem;
+        }
+
+        .otp-inputs input {
+            width: 44px;
+            height: 52px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            background-color: #fcfcfc;
+            color: var(--royal-purple);
+            transition: var(--transition);
+            caret-color: var(--berry-magenta);
+        }
+
+        .otp-inputs input:focus {
+            outline: none;
+            border-color: var(--berry-magenta);
+            background-color: var(--crisp-white);
+            box-shadow: 0 0 0 3px rgba(194, 26, 92, 0.1);
+        }
+
+        .otp-inputs input.filled {
+            border-color: var(--elegant-gold);
+            background-color: rgba(183, 143, 75, 0.05);
+        }
+
+        .resend-row {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1.2rem;
+        }
+
+        #resend-btn {
+            background: none;
+            border: none;
+            color: var(--elegant-gold);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 0;
+        }
+
+        #resend-btn:hover { color: var(--berry-magenta); }
+        #resend-btn:disabled { color: #bbb; cursor: not-allowed; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+            color: var(--soft-amethyst);
+            cursor: pointer;
+            margin-bottom: 1.2rem;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            font-family: var(--font-body);
+            padding: 0;
+        }
+        .back-link:hover { color: var(--royal-purple); }
+
+        /* ── Password Eye Toggle ────────────────────────────── */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 3rem;
+        }
+
+        .eye-btn {
+            position: absolute;
+            right: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #aaa;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .eye-btn:hover { color: var(--soft-amethyst); }
+
+        /* ── reCAPTCHA container ─────────────────────────────── */
+        #recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+        }
+
+        /* ── Loading state on buttons ───────────────────────── */
+        .cta-button.loading {
+            opacity: 0.7;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .cta-button.loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-left: 0.6rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Decorative script above card ───────────────────── */
+        .auth-script-label {
+            font-family: var(--font-script, 'Great Vibes', cursive);
+            color: var(--elegant-gold);
+            font-size: 2rem;
+            text-align: center;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+    </style>
 </head>
 
 <body class="auth-body">
-    
+
     <nav class="navbar">
         <div class="nav-container">
             <a href="https://priyankapravah.live/" class="brand-logo">
                 <span class="brand-primary">Priyanka</span><span class="brand-secondary">Pravah</span>
             </a>
-
             <input type="checkbox" id="nav-toggle" class="nav-toggle" />
-            <label for="nav-toggle" class="nav-toggle-label">
-                <span></span>
-            </label>
-
+            <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
             <ul class="nav-links">
-                <li>
-                    <a href="/about/">About</a>
-                </li>
-                <li>
-                    <a href="/rcorner/">Reading Corner</a>
-                </li>
-
-                <li id="nav-admin" class="hidden">
-                    <a href="/admin/">Admin</a>
-                </li>
-
-                <li id="nav-login">
-                    <a href="/login/" class="btn-login" class="active">Login</a>
-                </li>
-
+                <li><a href="/about/">About</a></li>
+                <li><a href="/rcorner/">Reading Corner</a></li>
+                <li id="nav-admin" class="hidden"><a href="/admin/">Admin</a></li>
+                <li id="nav-login"><a href="/login/" class="btn-login active">Login</a></li>
                 <li id="nav-logout" class="hidden">
-                    <a href="#" class="btn-login" style="
-                background-color: transparent;
-                border: 1px solid var(--royal-purple);
-                color: var(--royal-purple) !important;
-              ">Logout</a>
+                    <a href="#" class="btn-login"
+                        style="background-color: transparent; border: 1px solid var(--royal-purple); color: var(--royal-purple) !important;">Logout</a>
                 </li>
             </ul>
         </div>
@@ -59,79 +289,154 @@
 
     <section class="auth-section">
         <div class="auth-card">
+
+            <!-- Decorative header -->
             <div class="auth-header">
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">
-                    Log in to access your library and exclusive poetry.
-                </p>
+                <span class="auth-script-label">Welcome Back</span>
+                <h1 class="auth-title">Sign In</h1>
+                <p class="auth-subtitle">Access your library and exclusive poetry.</p>
             </div>
 
-            <button class="google-btn">
+            <!-- Google SSO -->
+            <button class="google-btn" id="google-signin-btn" type="button">
                 <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                     <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                        <path fill="#4285F4"
-                            d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z" />
-                        <path fill="#34A853"
-                            d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z" />
-                        <path fill="#FBBC05"
-                            d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z" />
-                        <path fill="#EA4335"
-                            d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z" />
+                        <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z" />
+                        <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z" />
+                        <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z" />
+                        <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z" />
                     </g>
                 </svg>
                 Sign in with Google
             </button>
 
-            <div class="auth-divider">
-                <span>or continue with email</span>
+            <div class="auth-divider"><span>or sign in with</span></div>
+
+            <!-- Method Toggle -->
+            <div class="auth-method-toggle" id="method-toggle">
+                <div class="toggle-indicator"></div>
+                <button type="button" id="tab-email" class="active">Email & Password</button>
+                <button type="button" id="tab-phone">Phone Number</button>
             </div>
 
-            <form class="auth-form" action="#" method="POST">
-                <div class="input-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="you@example.com" required />
+            <!-- ═══════════════ EMAIL PANEL ═══════════════ -->
+            <div class="auth-panel active" id="panel-email">
+                <form id="email-form" novalidate>
+                    <div class="input-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+                            <button type="button" class="eye-btn" id="eye-toggle" aria-label="Toggle password visibility">
+                                <!-- Eye open icon (default) -->
+                                <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <!-- Eye closed icon (hidden initially) -->
+                                <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember-me" /> Remember me
+                        </label>
+                        <a href="#" class="forgot-password" id="forgot-link">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="cta-button primary-cta full-width">Log In</button>
+                </form>
+            </div>
+
+            <!-- ═══════════════ PHONE PANEL ═══════════════ -->
+            <div class="auth-panel" id="panel-phone">
+                <!-- Step 1: Enter phone number -->
+                <div id="phone-step">
+                    <form id="phone-form" novalidate>
+                        <div class="input-group">
+                            <label>Phone Number</label>
+                            <div class="phone-row">
+                                <select class="country-code-select" id="country-code" aria-label="Country code">
+                                    <option value="+91">🇮🇳 +91</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+61">🇦🇺 +61</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                    <option value="+65">🇸🇬 +65</option>
+                                    <option value="+49">🇩🇪 +49</option>
+                                    <option value="+33">🇫🇷 +33</option>
+                                    <option value="+81">🇯🇵 +81</option>
+                                    <option value="+86">🇨🇳 +86</option>
+                                </select>
+                                <div class="input-group">
+                                    <input type="tel" id="phone-number" placeholder="98765 43210"
+                                        autocomplete="tel-national" maxlength="15" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Firebase invisible reCAPTCHA mounts here -->
+                        <div id="recaptcha-container"></div>
+
+                        <button type="submit" class="cta-button primary-cta full-width">Send OTP</button>
+                    </form>
                 </div>
 
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="••••••••" required />
+                <!-- Step 2: Enter OTP -->
+                <div id="otp-step">
+                    <button type="button" class="back-link" id="back-to-phone">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Change number
+                    </button>
+
+                    <p class="otp-hint">We sent a 6-digit code to <strong id="otp-phone-display"></strong>. Enter it below.</p>
+
+                    <form id="otp-form" novalidate>
+                        <div class="otp-inputs" id="otp-inputs">
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 1" />
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 2" />
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 3" />
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 4" />
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 5" />
+                            <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="OTP digit 6" />
+                        </div>
+
+                        <div class="resend-row">
+                            <span id="resend-timer">Resend code in <strong id="countdown">30</strong>s</span>
+                            <button type="button" id="resend-btn" disabled style="display:none;">Resend OTP</button>
+                        </div>
+
+                        <button type="submit" class="cta-button primary-cta full-width">Verify & Sign In</button>
+                    </form>
                 </div>
+            </div>
 
-                <div class="auth-options">
-                    <label class="remember-me">
-                        <input type="checkbox" /> Remember me
-                    </label>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
-                </div>
-
-                <button type="submit" class="cta-button primary-cta full-width" style="margin-top: 1rem">
-                    Log In
-                </button>
-            </form>
-
-            <p class="auth-switch">
-                Don't have an account? <a href="/signup/">Sign up</a>
-            </p>
+            <p class="auth-switch">Don't have an account? <a href="/signup/">Sign up</a></p>
         </div>
     </section>
 
     <footer class="site-footer">
-    <div class="footer-container">
-        
-        <div class="footer-top">
-            
-            <div class="footer-left">
-                <div class="footer-author">
-                    <h3>Priyanka Pravah</h3>
-                </div>
-                
-                <div class="footer-group">
-    <h4>Latest Publications</h4>
-    <ul id="footer-latest-pubs">
-        <li><a href="#">Loading...</a></li>
-    </ul>
-</div>
-                    
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-left">
+                    <div class="footer-author"><h3>Priyanka Pravah</h3></div>
+                    <div class="footer-group">
+                        <h4>Latest Publications</h4>
+                        <ul id="footer-latest-pubs"><li><a href="#">Loading...</a></li></ul>
+                    </div>
                     <div class="footer-group">
                         <h4>Quick Links</h4>
                         <ul>
@@ -141,50 +446,37 @@
                         </ul>
                     </div>
                 </div>
-            </div>
-
-            <div class="footer-right">
-                <h4>Connect</h4>
-                <div class="social-icons">
-                    <a href="https://www.facebook.com/share/1B7LWCbGLV/" class="social-icon" title="Facebook">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                    </a>
-                    <a href="https://www.instagram.com/parwazpublications_1?igsh=aXZwMnU2bTFwM3N6" class="social-icon" title="Instagram">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                    </a>
-                    <a href="https://chat.whatsapp.com/BrUJeICtbyjE7dLFikLbi4?mlu=0&s=cl&p=a" class="social-icon" title="WhatsApp">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    </a>
+                <div class="footer-right">
+                    <h4>Connect</h4>
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/share/1B7LWCbGLV/" class="social-icon" title="Facebook">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                        </a>
+                        <a href="https://www.instagram.com/parwazpublications_1?igsh=aXZwMnU2bTFwM3N6" class="social-icon" title="Instagram">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                        </a>
+                        <a href="https://chat.whatsapp.com/BrUJeICtbyjE7dLFikLbi4?mlu=0&s=cl&p=a" class="social-icon" title="WhatsApp">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        </a>
+                    </div>
                 </div>
             </div>
-            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Priyanka Pravah. All Rights Reserved.</p>
+            </div>
         </div>
-
-        <div class="footer-bottom">
-            <p>&copy; 2026 Priyanka Pravah. All Rights Reserved.</p>
-        </div>
-
-    </div>
-</footer>
+    </footer>
 
     <script src="/script.js"></script>
     <script type="module" src="/globalauth.js"></script>
+    <!-- Login-specific logic -->
+    <script type="module" src="/login.js"></script>
     <script src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js"></script>
     <script>
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smooth: true,
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
         requestAnimationFrame(raf);
     </script>
-
-<script type="module" src="/footer.js"></script>
+    <script type="module" src="/footer.js"></script>
 </body>
-
 </html>
