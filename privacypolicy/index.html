@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Priyanka Pravah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+    /* =========================================
+       Legal Content — extends existing design system
+       ========================================= */
+    .legal-hero {
+        margin-top: 60px;
+        padding: 4.5rem 1rem 3rem;
+        text-align: center;
+        background: linear-gradient(135deg, var(--off-white) 0%, var(--surface) 100%);
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .legal-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -1px; left: 50%;
+        transform: translateX(-50%);
+        width: 80px; height: 3px;
+        background: linear-gradient(90deg, var(--elegant-gold), var(--berry-magenta));
+        border-radius: 2px;
+    }
+
+    .legal-hero .page-title { color: var(--royal-purple); font-size: 2rem; margin-bottom: 0.6rem; }
+    .legal-hero .page-subtitle { color: var(--text-muted); font-size: 0.9rem; opacity: 1; }
+
+    .legal-section { padding: 4rem 0 5rem; }
+
+    .legal-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .legal-toc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .legal-toc h4 {
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--elegant-gold);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .legal-toc ol {
+        list-style: none;
+        columns: 1;
+        gap: 0.6rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .legal-toc a {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        transition: var(--transition);
+    }
+
+    .legal-toc a:hover { color: var(--berry-magenta); }
+
+    .legal-body h2 {
+        font-family: var(--font-heading);
+        color: var(--royal-purple);
+        font-size: 1.45rem;
+        margin-top: 2.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--border);
+        letter-spacing: -0.01em;
+        scroll-margin-top: 90px;
+    }
+
+    .legal-body h2:first-child { margin-top: 0; }
+
+    .legal-body h3 {
+        font-family: var(--font-heading);
+        color: var(--royal-purple);
+        font-size: 1.1rem;
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .legal-body p {
+        color: #4A3A5A;
+        font-size: 1rem;
+        line-height: 1.85;
+        margin-bottom: 1.1rem;
+    }
+
+    .legal-body ul {
+        margin: 0 0 1.1rem 0;
+        padding-left: 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .legal-body li {
+        color: #4A3A5A;
+        font-size: 0.98rem;
+        line-height: 1.75;
+    }
+
+    .legal-body li::marker { color: var(--berry-magenta); }
+
+    .legal-body strong { color: var(--royal-purple); font-weight: 600; }
+
+    .legal-body a { color: var(--berry-magenta); font-weight: 500; }
+    .legal-body a:hover { text-decoration: underline; }
+
+    .legal-meta-card {
+        background: var(--crisp-white);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--elegant-gold);
+        border-radius: var(--radius-md);
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 2.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .legal-meta-card p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+    }
+
+    .legal-contact-card {
+        margin-top: 3rem;
+        background: linear-gradient(160deg, var(--royal-purple) 0%, #3D1560 100%);
+        border-radius: var(--radius-lg);
+        padding: 2.25rem;
+        color: var(--crisp-white);
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .legal-contact-card h3 {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-contact-card p { color: rgba(255,255,255,0.75); font-size: 0.92rem; margin-bottom: 0.25rem; }
+
+    .legal-contact-card a { color: var(--elegant-gold); font-weight: 600; }
+
+    @media (min-width: 768px) {
+        .legal-hero .page-title { font-size: 2.6rem; }
+        .legal-layout { flex-direction: row; align-items: flex-start; gap: 3.5rem; }
+        .legal-toc { flex: 0 0 220px; position: sticky; top: 90px; }
+        .legal-body { flex: 1; min-width: 0; }
+    }
+</style>
+</head>
+<body>
+
+<!-- =========================================
+     Navigation
+     ========================================= -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="index.html" class="brand-logo">
+            <span class="brand-primary">Priyanka</span> <span class="brand-secondary">Pravah</span>
+        </a>
+        <input type="checkbox" id="nav-toggle" class="nav-toggle">
+        <label for="nav-toggle" class="nav-toggle-label"><span></span></label>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="reading-corner.html">Reading Corner</a></li>
+            <li><a href="login.html" class="btn-login">Login</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- =========================================
+     Legal Hero
+     ========================================= -->
+<header class="legal-hero">
+    <h1 class="page-title">Terms of Service</h1>
+    <p class="page-subtitle">Effective Date: July 16, 2026 &nbsp;•&nbsp; priyankapravah.live</p>
+</header>
+
+<!-- =========================================
+     Legal Content
+     ========================================= -->
+<section class="legal-section">
+    <div class="container">
+        <div class="legal-layout">
+
+            <nav class="legal-toc" aria-label="Table of contents">
+                <h4>On this page</h4>
+                <ol>
+                    <li><a href="#eligibility">1. Eligibility</a></li>
+                    <li><a href="#accounts">2. Accounts</a></li>
+                    <li><a href="#content">3. User-Generated Content</a></li>
+                    <li><a href="#use">4. Acceptable Use</a></li>
+                    <li><a href="#ip">5. Intellectual Property</a></li>
+                    <li><a href="#ads">6. Advertising</a></li>
+                    <li><a href="#links">7. Third-Party Links</a></li>
+                    <li><a href="#warranties">8. Disclaimer of Warranties</a></li>
+                    <li><a href="#liability">9. Limitation of Liability</a></li>
+                    <li><a href="#indemnification">10. Indemnification</a></li>
+                    <li><a href="#termination">11. Termination</a></li>
+                    <li><a href="#changes">12. Changes</a></li>
+                    <li><a href="#governing-law">13. Governing Law</a></li>
+                    <li><a href="#severability">14. Severability</a></li>
+                    <li><a href="#contact">15. Contact Us</a></li>
+                </ol>
+            </nav>
+
+            <article class="legal-body">
+
+                <div class="legal-meta-card">
+                    <p>By accessing or using priyankapravah.live, you agree to these Terms. These Terms are governed by the laws of India, including the Information Technology Act, 2000 and the Indian Contract Act, 1872.</p>
+                </div>
+
+                <h2 id="eligibility">1. Eligibility</h2>
+                <p>You must be <strong>at least 13 years old</strong> to create an account or post content on the Site. If you are between 13 and 18 years of age, you confirm that you have the awareness or involvement of a parent or legal guardian in your use of the Site. By using the Site, you represent that you meet these requirements.</p>
+
+                <h2 id="accounts">2. Accounts</h2>
+                <ul>
+                    <li>You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account.</li>
+                    <li>You agree to provide accurate and complete information when registering.</li>
+                    <li>You must notify us promptly at <a href="mailto:priyanka.rumu23@gmail.com">priyanka.rumu23@gmail.com</a> if you suspect unauthorized use of your account.</li>
+                    <li>We reserve the right to suspend or terminate accounts that violate these Terms.</li>
+                </ul>
+
+                <h2 id="content">3. User-Generated Content</h2>
+                <h3>3.1 Your Content</h3>
+                <p>"User Content" means any poems, articles, comments, profile information, or other material you submit, post, or display on the Site.</p>
+                <ul>
+                    <li>You retain ownership of the intellectual property rights in your User Content.</li>
+                    <li>By posting User Content, you grant Priyanka Pravah a non-exclusive, royalty-free, worldwide license to host, display, reproduce, and distribute that content on the Site for the purpose of operating and promoting the Site.</li>
+                    <li>You are solely responsible for your User Content and confirm that you have the right to post it.</li>
+                </ul>
+
+                <h3>3.2 Content Standards</h3>
+                <p>You agree not to post content that:</p>
+                <ul>
+                    <li>Infringes another person's copyright, trademark, or other intellectual property rights.</li>
+                    <li>Is defamatory, obscene, harassing, hateful, or discriminatory.</li>
+                    <li>Contains threats of violence or incites illegal activity.</li>
+                    <li>Is false, misleading, or intended to deceive.</li>
+                    <li>Violates any applicable law, including the Information Technology Act, 2000.</li>
+                    <li>Contains malware, spam, or unauthorized advertising.</li>
+                </ul>
+
+                <h3>3.3 Moderation</h3>
+                <p>We reserve the right, but are not obligated, to review, edit, remove, or refuse to publish any User Content that violates these Terms or that we find objectionable, without prior notice.</p>
+
+                <h2 id="use">4. Acceptable Use</h2>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Use the Site for any unlawful purpose.</li>
+                    <li>Attempt to gain unauthorized access to the Site, other accounts, or our systems.</li>
+                    <li>Interfere with or disrupt the Site's operation (e.g., through malware, scraping, or denial-of-service attempts).</li>
+                    <li>Impersonate any person or entity, or misrepresent your affiliation with any person or entity.</li>
+                    <li>Harvest or collect personal data of other users without consent.</li>
+                </ul>
+
+                <h2 id="ip">5. Intellectual Property</h2>
+                <p>Except for User Content, all content on the Site — including text, design, logos, graphics, and software — is owned by or licensed to Priyanka Pravah and is protected by applicable intellectual property laws. You may not copy, reproduce, distribute, or create derivative works from Site content without our prior written permission, except as permitted for personal, non-commercial use (e.g., reading and sharing links).</p>
+
+                <h2 id="ads">6. Advertising</h2>
+                <p>We may, now or in the future, display third-party advertisements on the Site (for example, through ad networks such as Google AdSense). We are not responsible for the content of advertisements or the products/services offered by advertisers. Any dealings you have with advertisers are solely between you and them.</p>
+
+                <h2 id="links">7. Third-Party Links</h2>
+                <p>The Site may contain links to third-party websites or services not owned or controlled by us. We are not responsible for the content, policies, or practices of any third-party sites.</p>
+
+                <h2 id="warranties">8. Disclaimer of Warranties</h2>
+                <p>The Site is provided on an "as is" and "as available" basis, without warranties of any kind, whether express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement. We do not guarantee that the Site will be uninterrupted, error-free, or secure at all times.</p>
+
+                <h2 id="liability">9. Limitation of Liability</h2>
+                <p>To the maximum extent permitted by applicable law, Priyanka Pravah and its owner/operator shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of data, revenue, or goodwill, arising out of or related to your use of the Site, even if advised of the possibility of such damages.</p>
+
+                <h2 id="indemnification">10. Indemnification</h2>
+                <p>You agree to indemnify and hold harmless Priyanka Pravah, its owner/operator, and affiliates from any claims, damages, losses, or expenses (including legal fees) arising from your use of the Site, your User Content, or your violation of these Terms.</p>
+
+                <h2 id="termination">11. Termination</h2>
+                <p>We may suspend or terminate your access to the Site at any time, with or without notice, if we believe you have violated these Terms or engaged in conduct harmful to the Site or other users. You may also stop using the Site or delete your account at any time.</p>
+
+                <h2 id="changes">12. Changes to the Site or Terms</h2>
+                <p>We may modify, suspend, or discontinue any part of the Site at any time. We may also update these Terms from time to time; the revised version will be posted on this page with an updated "Effective Date." Continued use of the Site after changes take effect constitutes your acceptance of the revised Terms.</p>
+
+                <h2 id="governing-law">13. Governing Law and Jurisdiction</h2>
+                <p>These Terms are governed by the laws of India. Any disputes arising out of or relating to these Terms or the Site shall be subject to the exclusive jurisdiction of the competent courts in India.</p>
+
+                <h2 id="severability">14. Severability</h2>
+                <p>If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions will continue in full force and effect.</p>
+
+                <h2 id="contact">15. Contact Us</h2>
+                <p>For any questions about these Terms, please contact us using the details below.</p>
+
+                <div class="legal-contact-card">
+                    <h3>Priyanka Pravah</h3>
+                    <p>For questions about these Terms of Service</p>
+                    <p><a href="mailto:priyanka.rumu23@gmail.com">priyanka.rumu23@gmail.com</a></p>
+                </div>
+
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================
+     Footer
+     ========================================= -->
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-top">
+            <div class="footer-left">
+                <div class="footer-author">
+                    <h3>Priyanka Pravah</h3>
+                </div>
+                <div class="footer-group">
+                    <h4>Explore</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="reading-corner.html">Reading Corner</a></li>
+                    </ul>
+                </div>
+                <div class="footer-group">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="terms.html" class="active">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-right">
+                <h4>Connect</h4>
+                <div class="social-icons">
+                    <a href="#" class="social-icon" aria-label="Instagram">IG</a>
+                    <a href="#" class="social-icon" aria-label="Facebook">FB</a>
+                    <a href="mailto:priyanka.rumu23@gmail.com" class="social-icon" aria-label="Email">@</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 Priyanka Pravah. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
