@@ -7,6 +7,7 @@ let currentBook = null;
 let currentCommentBookId = null; // Moved to global scope
 let commentsUnsubscribe = null;  // Moved to global scope
 let currentlyOpenBookId = null;
+const publicationsCache = {}; // docId -> publication data, used by the text-poem reader
 
 // --- SETUP AUDIO FEEDBACK ---
 const flipSound = new Audio('pgflip.mp3'); 
@@ -16,6 +17,7 @@ flipSound.volume = 0.4;
 document.addEventListener('DOMContentLoaded', () => {
     loadLibrary();
     setupModalControls();
+    setupTextReaderControls();
     setupCommentControls(); // Initialize comment buttons here!
 });
 
@@ -43,13 +45,20 @@ async function loadLibrary() {
         const urlParams = new URLSearchParams(window.location.search);
         const sharedBookId = urlParams.get('book');
         let sharedPdfUrl = null;
+        let sharedTextBookId = null;
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const docId = docSnap.id; 
-            
+            publicationsCache[docId] = data;
+            const isTextPoem = data.contentFormat === 'text';
+
             if (sharedBookId && docId === sharedBookId) {
-                sharedPdfUrl = data.documentUrl;
+                if (isTextPoem) {
+                    sharedTextBookId = docId;
+                } else {
+                    sharedPdfUrl = data.documentUrl;
+                }
             }
             
             const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Publication";
@@ -64,10 +73,10 @@ async function loadLibrary() {
                     <div class="library-info">
                         <h3 class="library-title">${data.title}</h3>
                         <p class="library-date">Published: ${dateText}</p>
-                        <p class="library-type">${typeText}</p>
+                        <p class="library-type">${typeText}${isTextPoem ? ' • ✍️ Written' : ''}</p>
                         
                         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-pdf="${data.documentUrl}" data-id="${docId}">Read</button>
+                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-format="${isTextPoem ? 'text' : 'file'}" data-pdf="${data.documentUrl || ''}" data-id="${docId}">Read</button>
                             <button class="cta-button outline-cta comment-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Comments">💬</button>
                             <button class="cta-button outline-cta share-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
                         </div>
@@ -81,10 +90,16 @@ async function loadLibrary() {
             btn.addEventListener('click', (e) => {
                 // currentTarget guarantees we grab the button, not the ripple effect
                 const targetBtn = e.currentTarget; 
-                const pdfUrl = targetBtn.getAttribute('data-pdf');
                 const bookId = targetBtn.getAttribute('data-id'); 
-                
-                openBookViewer(pdfUrl, bookId); 
+                const format = targetBtn.getAttribute('data-format');
+
+                if (format === 'text') {
+                    const data = publicationsCache[bookId];
+                    openTextReader(data ? data.poemText : '', data ? data.title : 'Poem', bookId);
+                } else {
+                    const pdfUrl = targetBtn.getAttribute('data-pdf');
+                    openBookViewer(pdfUrl, bookId); 
+                }
             });
         });
 
@@ -116,6 +131,11 @@ async function loadLibrary() {
             setTimeout(() => {
                 openBookViewer(sharedPdfUrl, sharedBookId);
             }, 500); 
+        } else if (sharedTextBookId) {
+            const data = publicationsCache[sharedTextBookId];
+            setTimeout(() => {
+                openTextReader(data ? data.poemText : '', data ? data.title : 'Poem', sharedTextBookId);
+            }, 500);
         }
 
     } catch (error) {
@@ -241,6 +261,70 @@ async function openBookViewer(pdfUrl, bookId) {
         console.error("Error generating book:", error);
         loadingScreen.innerHTML = '<p style="color: #ff4d4d;">Failed to load the document. It might be corrupted or blocking access.</p>';
     }
+}
+
+// --- 2b. PLAIN TEXT POEM READER (for poems written directly, no PDF) ---
+function openTextReader(text, title, bookId) {
+    currentlyOpenBookId = bookId;
+    const modal = document.getElementById('text-reader-modal');
+    const titleEl = document.getElementById('text-reader-title');
+    const bodyEl = document.getElementById('text-reader-body');
+
+    titleEl.innerText = title || 'Poem';
+    // Using innerText (not innerHTML) keeps it as plain, safe text while
+    // CSS white-space: pre-wrap preserves the poem's line breaks.
+    bodyEl.innerText = text || '';
+    bodyEl.scrollTop = 0;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    const url = new URL(window.location);
+    url.searchParams.set('book', bookId);
+    window.history.replaceState({}, '', url);
+}
+
+function setupTextReaderControls() {
+    const modal = document.getElementById('text-reader-modal');
+
+    document.getElementById('close-text-reader').addEventListener('click', () => {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+
+        const url = new URL(window.location);
+        url.searchParams.delete('book');
+        window.history.replaceState({}, '', url);
+    });
+
+    document.getElementById('text-reader-comment-btn').addEventListener('click', () => {
+        if (currentlyOpenBookId) {
+            currentCommentBookId = currentlyOpenBookId;
+            openCommentsModal(currentlyOpenBookId);
+        }
+    });
+
+    document.getElementById('text-reader-share-btn').addEventListener('click', async () => {
+        if (!currentlyOpenBookId) return;
+        const shareUrl = `${window.location.origin}${window.location.pathname}?book=${currentlyOpenBookId}`;
+        const btn = document.getElementById('text-reader-share-btn');
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Priyanka Pravah',
+                    text: 'Read this poem on Priyanka Pravah!',
+                    url: shareUrl
+                });
+            } catch (err) {
+                console.log("User cancelled share");
+            }
+        } else {
+            navigator.clipboard.writeText(shareUrl);
+            const originalText = btn.innerText;
+            btn.innerText = "✓ Copied";
+            setTimeout(() => btn.innerText = originalText, 2000);
+        }
+    });
 }
 
 // --- 3. MODAL CONTROLS (Close, Next, Prev) ---
