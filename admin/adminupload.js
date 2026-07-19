@@ -104,7 +104,7 @@ async function loadRecentUploads() {
                         <img src="${coverSrc}" class="manage-thumb" alt="Cover">
                         <div>
                             <h4>${data.title}</h4>
-                            <p>${typeText} • ${data.publishDate}</p>
+                            <p>${typeText}${data.contentFormat === 'text' ? ' ✍️' : ''} • ${data.publishDate}</p>
                         </div>
                     </div>
                     <div class="manage-actions">
@@ -144,6 +144,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const coverInput = document.getElementById('cover-image');
     const docInput = document.getElementById('doc-file');
     const cancelEditBtn = document.getElementById('cancel-edit-btn'); 
+
+    // --- TEXT POEM UI ELEMENTS ---
+    const pubTypeSelect = document.getElementById('pub-type');
+    const contentFormatGroup = document.getElementById('content-format-group');
+    const poemTextGroup = document.getElementById('poem-text-group');
+    const docFileGroup = document.getElementById('doc-file-group');
+    const poemTextArea = document.getElementById('poem-text');
+    const formatRadios = document.querySelectorAll('input[name="content-format"]');
+
+    // Show/hide the "file vs text" toggle and the right fields based on
+    // the selected content type + chosen format.
+    function updateFormatVisibility() {
+        const isPoem = pubTypeSelect && pubTypeSelect.value === 'poem';
+        if (contentFormatGroup) contentFormatGroup.style.display = isPoem ? 'block' : 'none';
+
+        const checkedRadio = document.querySelector('input[name="content-format"]:checked');
+        const isTextMode = isPoem && checkedRadio && checkedRadio.value === 'text';
+
+        if (poemTextGroup) poemTextGroup.style.display = isTextMode ? 'block' : 'none';
+        if (docFileGroup) docFileGroup.style.display = isTextMode ? 'none' : 'block';
+    }
+
+    if (pubTypeSelect) pubTypeSelect.addEventListener('change', updateFormatVisibility);
+    formatRadios.forEach(radio => radio.addEventListener('change', updateFormatVisibility));
+    updateFormatVisibility();
 
     // --- LIVE SEARCH LOGIC ---
     if (searchInput) {
@@ -223,6 +248,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('pub-type').value = data.type;
                     document.getElementById('pub-date').value = data.publishDate;
                     document.getElementById('pub-desc').value = data.description || "";
+
+                    // Populate content-format toggle (file vs. written poem text)
+                    const isTextFormat = data.contentFormat === 'text';
+                    const fileRadio = document.querySelector('input[name="content-format"][value="file"]');
+                    const textRadio = document.querySelector('input[name="content-format"][value="text"]');
+                    if (isTextFormat) {
+                        if (textRadio) textRadio.checked = true;
+                        if (poemTextArea) poemTextArea.value = data.poemText || "";
+                    } else {
+                        if (fileRadio) fileRadio.checked = true;
+                        if (poemTextArea) poemTextArea.value = "";
+                    }
+                    updateFormatVisibility();
                     
                     // Set State
                     editingDocId = targetId;
@@ -265,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.file-drop-zone').forEach(zone => {
                 zone.style.borderColor = '#ccc';
             });
+            updateFormatVisibility();
         });
     }
 
@@ -297,10 +336,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const coverFile = coverInput.files[0];
             const docFile = docInput.files[0];
 
-            // Validation: Require doc file ONLY if it's a new upload
-            if (!editingDocId && !docFile) {
-                showToast("Please select a Document file.", "error");
-                return;
+            // Determine whether this is a written poem (text) or a file-based publication
+            const checkedFormatRadio = document.querySelector('input[name="content-format"]:checked');
+            const contentFormat = (type === 'poem' && checkedFormatRadio && checkedFormatRadio.value === 'text') ? 'text' : 'file';
+            const poemText = poemTextArea ? poemTextArea.value.trim() : '';
+
+            if (contentFormat === 'text') {
+                // Validation: Require poem text
+                if (!poemText) {
+                    showToast("Please write the poem text.", "error");
+                    return;
+                }
+            } else {
+                // Validation: Require doc file ONLY if it's a new upload
+                if (!editingDocId && !docFile) {
+                    showToast("Please select a Document file.", "error");
+                    return;
+                }
             }
 
             // Save original button state
@@ -360,26 +412,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 let finalDocUrl = existingDocUrl;
                 let finalCoverUrl = existingCoverUrl;
 
-                // 1. Handle New Document Upload (if selected)
-                if (docFile) {
-                    const isPdf = docFile.name.toLowerCase().endsWith('.pdf');
-                    const docResourceType = isPdf ? 'image' : 'raw';
-                    
-                    finalDocUrl = await uploadToCloudinaryXHR(docFile, docResourceType, (progress) => {
-                        updateButtonProgress(coverFile ? 20 + (progress * 0.80) : progress); 
-                    });
+                if (contentFormat === 'text') {
+                    // Written poems don't need a document file uploaded to Cloudinary.
+                    finalDocUrl = "";
 
-                    // Auto-generate cover if PDF and no cover provided
-                    if (isPdf && !coverFile && !existingCoverUrl) {
-                        finalCoverUrl = finalDocUrl.replace('.pdf', '.jpg').replace('/upload/', '/upload/w_600,c_fill,pg_1/'); 
+                    // 2. Handle Cover Upload (optional, still supported for text poems)
+                    if (coverFile) {
+                        finalCoverUrl = await uploadToCloudinaryXHR(coverFile, 'image', (progress) => {
+                            updateButtonProgress(progress);
+                        });
                     }
-                }
+                } else {
+                    // 1. Handle New Document Upload (if selected)
+                    if (docFile) {
+                        const isPdf = docFile.name.toLowerCase().endsWith('.pdf');
+                        const docResourceType = isPdf ? 'image' : 'raw';
+                        
+                        finalDocUrl = await uploadToCloudinaryXHR(docFile, docResourceType, (progress) => {
+                            updateButtonProgress(coverFile ? 20 + (progress * 0.80) : progress); 
+                        });
 
-                // 2. Handle New Cover Upload (if selected)
-                if (coverFile) {
-                    finalCoverUrl = await uploadToCloudinaryXHR(coverFile, 'image', (progress) => {
-                        updateButtonProgress(progress * 0.20); 
-                    });
+                        // Auto-generate cover if PDF and no cover provided
+                        if (isPdf && !coverFile && !existingCoverUrl) {
+                            finalCoverUrl = finalDocUrl.replace('.pdf', '.jpg').replace('/upload/', '/upload/w_600,c_fill,pg_1/'); 
+                        }
+                    }
+
+                    // 2. Handle New Cover Upload (if selected)
+                    if (coverFile) {
+                        finalCoverUrl = await uploadToCloudinaryXHR(coverFile, 'image', (progress) => {
+                            updateButtonProgress(progress * 0.20); 
+                        });
+                    }
                 }
 
                 submitBtn.innerText = "Saving to Library...";
@@ -393,6 +457,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     description: desc,
                     coverImageUrl: finalCoverUrl,
                     documentUrl: finalDocUrl,
+                    contentFormat: contentFormat,
+                    // Written poems store their text directly; file uploads clear it out
+                    poemText: contentFormat === 'text' ? poemText : '',
                     // Store the raw filename to make future duplicate checks super accurate
                     ...(docFile ? { originalFileName: docFile.name } : {}), 
                     // Only update timestamp if it's a brand new upload
@@ -423,6 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.file-drop-zone').forEach(zone => {
                     zone.style.borderColor = '#ccc';
                 });
+                updateFormatVisibility();
 
                 loadRecentUploads();
 
