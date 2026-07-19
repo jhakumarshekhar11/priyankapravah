@@ -92,6 +92,25 @@
                         <textarea id="pub-desc" rows="3" placeholder="Briefly describe this publication..."></textarea>
                     </div>
 
+                    <div class="input-group" id="content-format-group" style="display: none;">
+                        <label>How would you like to add this poem?</label>
+                        <div class="format-toggle">
+                            <label class="format-option">
+                                <input type="radio" name="content-format" value="file" checked>
+                                <span>📄 Upload a File</span>
+                            </label>
+                            <label class="format-option">
+                                <input type="radio" name="content-format" value="text">
+                                <span>✍️ Write Poem Text</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="poem-text-group" style="display: none;">
+                        <label for="poem-text">Poem Text</label>
+                        <textarea id="poem-text" rows="10" placeholder="Write or paste the poem here... (line breaks are preserved)"></textarea>
+                    </div>
+
                     <div class="file-upload-container">
                         <div class="input-group">
                             <label>Cover Image (JPG/PNG)</label>
@@ -102,7 +121,7 @@
                             </div>
                         </div>
 
-                        <div class="input-group">
+                        <div class="input-group" id="doc-file-group">
                             <label>Document File (PDF/EPUB)</label>
                             <div class="file-drop-zone">
                                 <span class="drop-icon">📄</span>
