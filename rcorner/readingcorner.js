@@ -1,4 +1,4 @@
-import { db, auth, collection, getDocs, query, orderBy, addDoc, serverTimestamp, onSnapshot } from '../firebaseconfig.js';
+import { db, auth, collection, getDocs, query, orderBy, limit, startAfter, doc, getDoc, addDoc, serverTimestamp, onSnapshot } from '../firebaseconfig.js';
 
 // Setup PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -9,138 +9,254 @@ let commentsUnsubscribe = null;  // Moved to global scope
 let currentlyOpenBookId = null;
 const publicationsCache = {}; // docId -> publication data, used by the text-poem reader
 
+// --- PAGINATION STATE (for scroll-loading the library) ---
+const PAGE_SIZE = 9;
+let lastVisibleDoc = null;   // Firestore doc snapshot cursor for startAfter()
+let isFetchingPage = false;  // guards against duplicate/overlapping fetches
+let allBooksLoaded = false;  // true once a page comes back smaller than PAGE_SIZE
+let scrollObserver = null;
+
 // --- SETUP AUDIO FEEDBACK ---
 const flipSound = new Audio('pgflip.mp3'); 
 flipSound.volume = 0.4; 
 
 // --- MASTER INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
+    setupLibraryGridDelegation();
     loadLibrary();
     setupModalControls();
     setupTextReaderControls();
     setupCommentControls(); // Initialize comment buttons here!
 });
 
-// --- 1. FETCH & RENDER LIBRARY ---
+// --- 1. FETCH & RENDER LIBRARY (now with scroll-based pagination) ---
 async function loadLibrary() {
     const grid = document.getElementById('library-grid');
-    
+
+    // Reset pagination state in case loadLibrary() is ever called again
+    lastVisibleDoc = null;
+    allBooksLoaded = false;
+
     grid.innerHTML = `
         <div class="skeleton-card"></div>
         <div class="skeleton-card"></div>
         <div class="skeleton-card"></div>
     `;
 
+    // Handle a deep link (?book=xyz) by fetching that specific document directly.
+    // This has to be independent of pagination — the shared book might be far
+    // older than whatever the first scroll page happens to contain.
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedBookId = urlParams.get('book');
+    if (sharedBookId) {
+        openSharedBookById(sharedBookId);
+    }
+
     try {
-        const q = query(collection(db, "publications"), orderBy("uploadedAt", "desc"));
-        const querySnapshot = await getDocs(q);
+        const firstBatch = await fetchPublicationsPage();
 
-        grid.innerHTML = ''; 
+        grid.innerHTML = '';
 
-        if (querySnapshot.empty) {
+        if (firstBatch.empty) {
             grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No publications available yet. Check back soon!</p>';
             return;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const sharedBookId = urlParams.get('book');
-        let sharedPdfUrl = null;
-        let sharedTextBookId = null;
-
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const docId = docSnap.id; 
-            publicationsCache[docId] = data;
-            const isTextPoem = data.contentFormat === 'text';
-
-            if (sharedBookId && docId === sharedBookId) {
-                if (isTextPoem) {
-                    sharedTextBookId = docId;
-                } else {
-                    sharedPdfUrl = data.documentUrl;
-                }
-            }
-            
-            const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Publication";
-            const dateText = data.publishDate || "Unknown Date";
-            const defaultBg = data.type === 'magazine' ? 'linear-gradient(135deg, var(--elegant-gold), var(--royal-purple))' : 'linear-gradient(135deg, var(--royal-purple), var(--soft-amethyst))';
-            
-            const coverStyle = data.coverImageUrl ? `background: url('${data.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` : `background: ${defaultBg};`;
-
-            const cardHtml = `
-                <article class="library-card reveal delay-1 active">
-                    <div class="library-cover" style="${coverStyle}"></div>
-                    <div class="library-info">
-                        <h3 class="library-title">${data.title}</h3>
-                        <p class="library-date">Published: ${dateText}</p>
-                        <p class="library-type">${typeText}${isTextPoem ? ' • ✍️ Written' : ''}</p>
-                        
-                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-format="${isTextPoem ? 'text' : 'file'}" data-pdf="${data.documentUrl || ''}" data-id="${docId}">Read</button>
-                            <button class="cta-button outline-cta comment-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Comments">💬</button>
-                            <button class="cta-button outline-cta share-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
-                        </div>
-                    </div>
-                </article>
-            `;
-            grid.insertAdjacentHTML('beforeend', cardHtml);
-        });
-
-        document.querySelectorAll('.read-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // currentTarget guarantees we grab the button, not the ripple effect
-                const targetBtn = e.currentTarget; 
-                const bookId = targetBtn.getAttribute('data-id'); 
-                const format = targetBtn.getAttribute('data-format');
-
-                if (format === 'text') {
-                    const data = publicationsCache[bookId];
-                    openTextReader(data ? data.poemText : '', data ? data.title : 'Poem', bookId);
-                } else {
-                    const pdfUrl = targetBtn.getAttribute('data-pdf');
-                    openBookViewer(pdfUrl, bookId); 
-                }
-            });
-        });
-
-        document.querySelectorAll('.share-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const bookId = e.currentTarget.getAttribute('data-id');
-                const shareUrl = `${window.location.origin}${window.location.pathname}?book=${bookId}`;
-                
-                if (navigator.share) {
-                    try {
-                        await navigator.share({
-                            title: 'Priyanka Pravah',
-                            text: 'Read this publication on Priyanka Pravah!',
-                            url: shareUrl
-                        });
-                    } catch (err) {
-                        console.log("User cancelled share");
-                    }
-                } else {
-                    navigator.clipboard.writeText(shareUrl);
-                    const originalText = e.currentTarget.innerText;
-                    e.currentTarget.innerText = "✓ Copied";
-                    setTimeout(() => e.currentTarget.innerText = originalText, 2000);
-                }
-            });
-        });
-
-        if (sharedPdfUrl) {
-            setTimeout(() => {
-                openBookViewer(sharedPdfUrl, sharedBookId);
-            }, 500); 
-        } else if (sharedTextBookId) {
-            const data = publicationsCache[sharedTextBookId];
-            setTimeout(() => {
-                openTextReader(data ? data.poemText : '', data ? data.title : 'Poem', sharedTextBookId);
-            }, 500);
-        }
+        renderBooks(firstBatch.docs);
+        setupScrollObserver(grid);
 
     } catch (error) {
         console.error("Error loading library:", error);
         grid.innerHTML = '<p style="text-align: center; color: red; grid-column: 1/-1;">Error loading the library.</p>';
+    }
+}
+
+// Fetches one page of publications, starting after lastVisibleDoc if set.
+async function fetchPublicationsPage() {
+    const q = lastVisibleDoc
+        ? query(collection(db, "publications"), orderBy("uploadedAt", "desc"), startAfter(lastVisibleDoc), limit(PAGE_SIZE))
+        : query(collection(db, "publications"), orderBy("uploadedAt", "desc"), limit(PAGE_SIZE));
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+        lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
+    if (snapshot.size < PAGE_SIZE) {
+        allBooksLoaded = true;
+    }
+
+    return snapshot;
+}
+
+// Renders a batch of publication docs into the grid (used for both the
+// initial load and every subsequent scroll-triggered page).
+function renderBooks(docSnaps) {
+    const grid = document.getElementById('library-grid');
+
+    docSnaps.forEach((docSnap) => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        publicationsCache[docId] = data;
+        const isTextPoem = data.contentFormat === 'text';
+
+        const typeText = data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : "Publication";
+        const dateText = data.publishDate || "Unknown Date";
+        const defaultBg = data.type === 'magazine' ? 'linear-gradient(135deg, var(--elegant-gold), var(--royal-purple))' : 'linear-gradient(135deg, var(--royal-purple), var(--soft-amethyst))';
+
+        const coverStyle = data.coverImageUrl ? `background: url('${data.coverImageUrl}') center/contain no-repeat; background-color: #f4f0f5;` : `background: ${defaultBg};`;
+
+        const cardHtml = `
+            <article class="library-card reveal delay-1 active">
+                <div class="library-cover" style="${coverStyle}"></div>
+                <div class="library-info">
+                    <h3 class="library-title">${data.title}</h3>
+                    <p class="library-date">Published: ${dateText}</p>
+                    <p class="library-type">${typeText}${isTextPoem ? ' • ✍️ Written' : ''}</p>
+
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="cta-button outline-cta full-width read-btn ripple-parent" style="flex: 1;" data-format="${isTextPoem ? 'text' : 'file'}" data-pdf="${data.documentUrl || ''}" data-id="${docId}">Read</button>
+                        <button class="cta-button outline-cta comment-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Comments">💬</button>
+                        <button class="cta-button outline-cta share-btn ripple-parent" style="padding: 0.5rem 1rem;" data-id="${docId}" title="Share this book">🔗</button>
+                    </div>
+                </div>
+            </article>
+        `;
+        grid.insertAdjacentHTML('beforeend', cardHtml);
+    });
+}
+
+// Sets up (or re-verifies) the sentinel element + IntersectionObserver that
+// triggers loading the next page as the user scrolls near the bottom of the grid.
+function setupScrollObserver(grid) {
+    let sentinel = document.getElementById('library-scroll-sentinel');
+    if (!sentinel) {
+        sentinel = document.createElement('div');
+        sentinel.id = 'library-scroll-sentinel';
+        sentinel.style.gridColumn = '1 / -1';
+        sentinel.style.textAlign = 'center';
+        sentinel.style.padding = '1.5rem 0';
+        sentinel.style.minHeight = '1px';
+        grid.insertAdjacentElement('afterend', sentinel);
+    }
+
+    if (scrollObserver) {
+        scrollObserver.disconnect();
+    }
+
+    if (allBooksLoaded) {
+        sentinel.innerHTML = '';
+        return;
+    }
+
+    scrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(async (entry) => {
+            if (entry.isIntersecting) {
+                await loadNextPage(sentinel);
+            }
+        });
+    }, { rootMargin: '400px' }); // start loading a bit before it's actually on-screen
+
+    scrollObserver.observe(sentinel);
+}
+
+// Fetches and renders the next page, called when the sentinel scrolls into view.
+async function loadNextPage(sentinel) {
+    if (isFetchingPage || allBooksLoaded) return;
+    isFetchingPage = true;
+    sentinel.innerHTML = '<div class="skeleton-card" style="height: 120px; margin: 0 auto; max-width: 300px;"></div>';
+
+    try {
+        const nextBatch = await fetchPublicationsPage();
+        if (!nextBatch.empty) {
+            renderBooks(nextBatch.docs);
+        }
+    } catch (error) {
+        console.error("Error loading more publications:", error);
+        sentinel.innerHTML = '<p style="color: red;">Failed to load more publications.</p>';
+        isFetchingPage = false;
+        return;
+    }
+
+    isFetchingPage = false;
+
+    if (allBooksLoaded) {
+        if (scrollObserver) scrollObserver.disconnect();
+        sentinel.innerHTML = '';
+    } else {
+        sentinel.innerHTML = '';
+    }
+}
+
+// Fetches one specific publication directly by ID (for ?book= deep links),
+// independent of whatever page of the library has been scrolled into view.
+async function openSharedBookById(bookId) {
+    try {
+        const docSnap = await getDoc(doc(db, "publications", bookId));
+        if (!docSnap.exists()) return;
+
+        const data = docSnap.data();
+        publicationsCache[bookId] = data;
+        const isTextPoem = data.contentFormat === 'text';
+
+        setTimeout(() => {
+            if (isTextPoem) {
+                openTextReader(data.poemText, data.title, bookId);
+            } else {
+                openBookViewer(data.documentUrl, bookId);
+            }
+        }, 500);
+    } catch (error) {
+        console.error("Error opening shared book:", error);
+    }
+}
+
+// Event delegation for Read/Share buttons — attached once, works for every
+// card rendered now or later via scroll pagination, no re-binding needed.
+function setupLibraryGridDelegation() {
+    const grid = document.getElementById('library-grid');
+
+    grid.addEventListener('click', (e) => {
+        const readBtn = e.target.closest('.read-btn');
+        if (readBtn) {
+            const bookId = readBtn.getAttribute('data-id');
+            const format = readBtn.getAttribute('data-format');
+
+            if (format === 'text') {
+                const data = publicationsCache[bookId];
+                openTextReader(data ? data.poemText : '', data ? data.title : 'Poem', bookId);
+            } else {
+                const pdfUrl = readBtn.getAttribute('data-pdf');
+                openBookViewer(pdfUrl, bookId);
+            }
+            return;
+        }
+
+        const shareBtn = e.target.closest('.share-btn');
+        if (shareBtn) {
+            handleShareClick(shareBtn, shareBtn.getAttribute('data-id'));
+        }
+    });
+}
+
+async function handleShareClick(btnEl, bookId) {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?book=${bookId}`;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Priyanka Pravah',
+                text: 'Read this publication on Priyanka Pravah!',
+                url: shareUrl
+            });
+        } catch (err) {
+            console.log("User cancelled share");
+        }
+    } else {
+        navigator.clipboard.writeText(shareUrl);
+        const originalText = btnEl.innerText;
+        btnEl.innerText = "✓ Copied";
+        setTimeout(() => btnEl.innerText = originalText, 2000);
     }
 }
 
