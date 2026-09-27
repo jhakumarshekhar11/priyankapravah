@@ -44,6 +44,7 @@ import {
     getDoc,
     setDoc,
     limit,
+    startAfter,
     where,
     onSnapshot,
     arrayUnion,
@@ -146,6 +147,7 @@ export {
     orderBy,
     where,
     limit,
+    startAfter,
 
     // ── Firestore: real-time ───────────────────────────────
     onSnapshot,
