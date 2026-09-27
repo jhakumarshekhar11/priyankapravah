@@ -31,7 +31,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import {
-    getFirestore,
+    initializeFirestore,
     collection,
     addDoc,
     serverTimestamp,
@@ -67,7 +67,22 @@ const firebaseConfig = {
 // ── Initialise ───────────────────────────────────────────────────────────────
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+
+// NOTE: Using initializeFirestore() instead of getFirestore() so we can force
+// the transport to auto-detect long-polling. The default streaming transport
+// (used by getFirestore) breaks on some networks/browsers/local security
+// software — they buffer or cut streamed HTTP responses, which is what was
+// causing the repeated "WebChannelConnection RPC 'Listen' stream ... transport
+// errored" + 404 failures. Long-polling avoids that by using plain sequential
+// HTTP requests instead of a kept-open stream.
+//
+// experimentalAutoDetectLongPolling: the SDK probes the environment and only
+// falls back to long-polling if streaming actually doesn't work — cheaper
+// than forcing it unconditionally. If failures persist after this change,
+// swap this flag for `experimentalForceLongPolling: true` to force it always.
+const db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+});
 
 // ── Auth providers ───────────────────────────────────────────────────────────
 const googleProvider = new GoogleAuthProvider();
